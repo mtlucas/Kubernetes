@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kube-test-container
+  name: kube-test-container
+  namespace: default
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: kube-test-container
+  template:
+    metadata:
+      labels:
+        app: kube-test-container
+    spec:
+      containers:
+      - name: kube-test-container
+        image: sverrirab/kube-test-container:v1.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 2
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 10Mi
+        ports:
+        - containerPort: 8000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 1
+          periodSeconds: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-test-container-ip
+  namespace: default
+spec:
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: kube-test-container
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+  name: kube-test-container-ingress
+  namespace: default
+spec:
+  rules:
+  - host: dev-k8s-m1.dev.rph.int
+    http:
+      paths:
+      - backend:
+          service:
+            name: kube-test-container-ip
+            port:
+              number: 8000
+        path: /kube-test(/|$)(.*)
+        pathType: Prefix

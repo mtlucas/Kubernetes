@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  annotations:
+  name: tls-wild.rph.int
+  namespace: default
+spec:
+  commonName: rph.int
+  dnsNames:
+  - '*.rph.int'
+  - '*.dev.rph.int'
+  issuerRef:
+    name: selfsigning-issuer
+  secretName: tls-wild.rph.int
+  usages:
+  - server auth
+  - client auth

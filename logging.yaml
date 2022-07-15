@@ -1,0 +1,37 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Output
+metadata:
+  name: splunkdev-logging-output
+  namespace: default
+spec:
+  splunkHec:
+    format:
+      type: json
+    hec_host: splunkdevindex.dev.rph.int
+    hec_port: 8088
+    hec_token:
+      valueFrom:
+        secretKeyRef:
+          key: SplunkHecToken
+          name: splunk-hec-token
+    index: main
+    insecure_ssl: true
+    protocol: https
+    source: ""
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  name: splunkdev-logging-flow
+  namespace: default
+spec:
+  globalOutputRefs: []
+  localOutputRefs:
+  - splunkdev-logging-output
+  match:
+  - select:
+      container_names: []
+      hosts: []
+      labels:
+        app: nginx
+        app.kubernetes.io/component: rabbitmq

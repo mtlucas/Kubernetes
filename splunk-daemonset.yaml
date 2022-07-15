@@ -1,0 +1,76 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: splunk-configs
+  namespace: splunk
+data:
+  outputs.conf: |-
+    [indexAndForward]
+    index = false
+
+    [tcpout]
+    defaultGroup = default-autolb-group
+
+    [tcpout:default-autolb-group]
+    server = splunkdevindex.dev.rph.int:9997
+
+    [tcpout-server://splunkdevindex.dev.rph.int:9997]
+
+  inputs.conf: |-
+    [monitor:///var/log/containers/*.log]
+    disabled = false
+    sourcetype = rancher_test
+    index = main
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: splunk-forwarder
+  namespace: splunk
+  labels:
+    k8s-app: splunk-forwarder
+spec:
+  selector:
+    matchLabels:
+      name: splunk-forwarder
+  securityContext:
+    fsGroup: 41812 # this maps to the splunk user in these containers
+  template:
+    metadata:
+      labels:
+        name: splunk-forwarder
+    spec:
+      hostNetwork: true
+      containers:
+      - name: splunk-forwarder
+        image: splunk/universalforwarder:latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: SPLUNK_START_ARGS
+            value: "--accept-license"
+          - name: SPLUNK_FORWARD_SERVER
+            value: splunkdevindex.dev.rph.int:9997
+          - name: SPLUNK_DEPLOYMENT_SERVER
+            value: splunkdevindex.dev.rph.int
+          - name: SPLUNK_USER
+            value: root
+          - name: SPLUNK_GROUP
+            value: root
+          - name: SPLUNK_PASSWORD
+            value: password123
+          - name: SPLUNK_CMD
+            value: add forward-server splunkdevindex.dev.rph.int:9997, add monitor /var/log/containers/*mssql*.log -sourcetype mssql_test
+        volumeMounts:
+          - mountPath: /var/log
+            name: varlog
+            readOnly: true
+          - name: splunk-configs
+            mountPath: /var/opt/splunk/etc
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - hostPath:
+            path: /var/log
+          name: varlog
+        - name: splunk-configs
+          configMap:
+            name: splunk-configs

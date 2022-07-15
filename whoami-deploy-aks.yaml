@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoami
+  namespace: default
+  labels:
+    app: whoami
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+      - name: whoami
+        image: traefik/whoami
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+      nodeSelector:
+        kubernetes.io/role: agent
+        beta.kubernetes.io/os: linux
+        type: virtual-kubelet
+      tolerations:
+      - key: virtual-kubelet.io/provider
+        operator: Exists
+      - key: azure.com/aci
+        effect: NoSchedule
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+  namespace: default
+  labels:
+    app: whoami
+spec:
+  selector:
+    app: whoami
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: whoami
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - 'aks-1.lucasnet.int'
+      secretName: ingress-tls-csi
+  rules:
+    - host: "aks-1.lucasnet.int"
+      http:
+        paths:
+          - path: /whoami(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: whoami
+                port:
+                  number: 80

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aci-helloworld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aci-helloworld
+  template:
+    metadata:
+      labels:
+        app: aci-helloworld
+    spec:
+      containers:
+      - name: aci-helloworld
+        image: mcr.microsoft.com/azuredocs/aci-helloworld
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+      nodeSelector:
+        kubernetes.io/role: agent
+        beta.kubernetes.io/os: linux
+        type: virtual-kubelet
+      tolerations:
+      - key: virtual-kubelet.io/provider
+        operator: Exists
+      - key: azure.com/aci
+        effect: NoSchedule
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+  namespace: default
+  labels:
+    app: aci-helloworld
+spec:
+  selector:
+    app: aci-helloworld
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: aci-helloworld
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - 'aks-1.lucasnet.int'
+      secretName: ingress-tls-csi
+  rules:
+    - host: "aks-1.lucasnet.int"
+      http:
+        paths:
+          - path: /aci-helloworld(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: aci-helloworld
+                port:
+                  number: 80

@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: p1s-mme
+  annotations:
+    field.cattle.io/projectId: local:p-9fmdt
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: p1s-mme
+  name: p1s-mme
+spec:
+  serviceName: p1s-mme-svc
+  replicas: 2
+  selector:
+    matchLabels:
+      app: p1s-mme
+  template:
+    metadata:
+      labels:
+        app: p1s-mme
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: "app"
+                  operator: In
+                  values:
+                  - p1s-mme
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: p1s-mme
+        args:
+        image: dev-harbor.dev.rph.int/p1s_mme/p1s_mme:4.0
+        resources:
+          requests:
+            memory: 2Gi
+        ports:
+        - containerPort: 5000
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 5000
+            httpHeaders:
+            - name: X-Health-Check
+              value: k8s-cluster-probe
+          timeoutSeconds: 5
+          periodSeconds: 10
+          initialDelaySeconds: 15
+        env:
+          - name: WORKER_COUNT
+            value: "2"
+        volumeMounts:
+        - name: p1s-mme-volume
+          mountPath: /var/log/gunicorn
+      nodeSelector:
+        nodetype: worker
+  volumeClaimTemplates:
+  - metadata:
+      name: p1s-mme-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: p1s-mme-svc
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: p1s-mme
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+  name: p1s-mme-ingress
+spec:
+  rules:
+  - host: dev-k8s-m1.dev.rph.int
+    http:
+      paths:
+      - backend:
+          service:
+            name: p1s-mme-svc
+            port:
+              number: 5000
+        path: /mme(/|$)(.*)
+        pathType: Prefix
+
