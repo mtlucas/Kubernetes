@@ -1,0 +1,165 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: baget
+  labels:
+    goldilocks.fairwinds.com/enabled: "true"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: baget-data-claim
+  namespace: baget
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: baget-config
+  namespace: baget
+data:
+  appsettings.json: |
+    {
+      "ApiKey": "63d803c3-e0be-4120-8fc7-09a41d86b0bc",
+      "PackageDeletionBehavior": "Unlist",
+      "AllowPackageOverwrites": false,
+
+      "Database": {
+        "Type": "Sqlite",
+        "ConnectionString": "Data Source=baget.db"
+      },
+
+      "Storage": {
+        "Type": "FileSystem",
+        "Path": ""
+      },
+
+      "Search": {
+        "Type": "Database"
+      },
+
+      "Mirror": {
+        "Enabled": false,
+        "PackageSource": "https://api.nuget.org/v3/index.json"
+      },
+      "Logging": {
+        "IncludeScopes": false,
+        "Debug": {
+          "LogLevel": {
+            "Default": "Warning"
+          }
+        },
+        "Console": {
+          "LogLevel": {
+            "Microsoft.Hosting.Lifetime": "Information",
+            "Default": "Warning"
+          }
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: baget
+  namespace: baget
+  labels:
+    app: baget
+spec:
+  selector:
+    matchLabels:
+      app: baget
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: baget
+    spec:
+      containers:
+      - name: baget
+        image: loicsharma/baget:latest
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          httpGet:
+            path: /v3/index.json
+            port: 80
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 30
+        envFrom:
+          - configMapRef:
+              name: baget-config
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: baget-data
+          mountPath: /var/baget
+      volumes:
+        - name: baget-data
+          persistentVolumeClaim:
+            claimName: baget-data-claim
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: baget
+  namespace: baget
+  labels: 
+    app: baget
+spec:
+  type: ClusterIP
+  selector:
+    app: baget
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: baget
+  namespace: baget
+  labels:
+    app: baget
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - nuget.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: nuget.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: baget
+                port:
+                  number: 80
