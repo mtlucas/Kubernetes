@@ -1,27 +1,28 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: whoami
-  namespace: default
+  name: teamcity-server
+  namespace: teamcity
   labels:
-    app: whoami
+    app: teamcity-server
   annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
     nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
     nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
     nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
 spec:
   tls:
     - hosts:
-        - whoami.lucasnet.int
-        - whoami.lucasnet.org
+        - teamcity.lucasnet.int
+        - teamcity.lucasnet.org
       secretName: lucasnet-tls
   rules:
-    - host: whoami.lucasnet.int
+    - host: teamcity.lucasnet.int
       http:
         paths:
           - pathType: ImplementationSpecific
             backend:
               service:
-                name: whoami
+                name: teamcity-server
                 port:
-                  number: 80
+                  number: 8111

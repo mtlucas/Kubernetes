@@ -1,0 +1,9 @@
+
+CRI cleanup:
+============
+
+crictl rmi --prune
+
+crictl ps -a | grep -v Running | awk '{print $1}' | xargs crictl rm && crictl rmi --prune
+
+for sha in $(ctr snapshot usage | grep ^sha256 | awk '{print $1}'); do ctr snapshot rm $sha ; done

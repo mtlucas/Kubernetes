@@ -148,7 +148,7 @@ spec:
             timeoutSeconds: 5
           resources:
             limits:
-              cpu: 2
+              cpu: 500m
               memory: 4Gi  # TeamCity server's 2 processes JVM heaps are -Xmx2g and -Xmx1g, plus overheads and wiggle room
             requests:
               cpu: 200m    # 69m resting
@@ -177,23 +177,23 @@ spec:
     - metadata:
         name: teamcity-server-datadir
       spec:
-        storageClassName: local-path
+        storageClassName: longhorn
         accessModes:
           - ReadWriteOnce
         resources:
           requests:
             # after 1 year this was only 3GB
-            storage: 5Gi
+            storage: 10Gi
     - metadata:
         name: teamcity-server-logs
       spec:
-        storageClassName: local-path
+        storageClassName: longhorn
         accessModes:
           - ReadWriteOnce
         resources:
           requests:
             # after nearly a year the server logs were only 1.2GB,but accumulated datestamped logs, hence TODO to add sidecar to stop them building up further
-            storage: 2Gi
+            storage: 5Gi
 ---
 apiVersion: v1
 kind: Service
