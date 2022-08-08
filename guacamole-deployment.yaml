@@ -33,7 +33,7 @@ spec:
             - name: LDAP_SEARCH_BIND_DN
               value: "CN=join_ad_sa,OU=ServiceAccounts,OU=Lucasnet,DC=lucasnet,DC=int"
             - name: LDAP_SEARCH_BIND_PASSWORD
-              value: "Password1234"
+              value: "CHANGE_ME"
             - name: LDAP_CONFIG_BASE_DN
               value: "OU=Guacamole,OU=Hosting,OU=Lucasnet,DC=lucasnet,DC=int"
           ports:

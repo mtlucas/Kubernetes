@@ -57,7 +57,7 @@ spec:
           - name: SPLUNK_GROUP
             value: root
           - name: SPLUNK_PASSWORD
-            value: password123
+            value: CHANGE_ME
           - name: SPLUNK_CMD
             value: add forward-server splunkdevindex.dev.rph.int:9997, add monitor /var/log/containers/*mssql*.log -sourcetype mssql_test
         volumeMounts:

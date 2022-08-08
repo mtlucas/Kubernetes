@@ -1,3 +1,6 @@
+# Add this to Ocotpus pod exec:
+#   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -o /usr/bin/kubectl
+#   chmod 755 /usr/bin/kubectl
 ---
 apiVersion: v1
 kind: Namespace
@@ -10,24 +13,26 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: octopus-storage-claim
+  namespace: octopus
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: local-path
+  storageClassName: longhorn
   resources:
     requests:
-      storage: 4Gi
+      storage: 10Gi
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: octopus
+  namespace: octopus
 spec:
   selector:
     matchLabels:
       app: octopus
   serviceName: "octopus"
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -53,7 +58,8 @@ spec:
           claimName: octopus-storage-claim
       containers:
       - name: octopus        
-        image: octopusdeploy/octopusdeploy:2021.3.8275
+        image: mtlucas/octopusdeploy:latest
+        imagePullPolicy: Always
         securityContext:
           privileged: true
         env:
@@ -65,19 +71,20 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: DB_CONNECTION_STRING
-            value: Server=mssql,1433;Database=Octopus;User Id=SA;Password=Password01!
+            value: Server=mssql,1433;Database=Octopus;User Id=SA;Password=CHANGE_ME
           - name: ADMIN_USERNAME
             value: admin
           - name: ADMIN_PASSWORD
-            value: Password01!
+            value: CHANGE_ME
           - name: ADMIN_EMAIL
-            value: admin@example.org
-          - name: OCTOPUS_SERVER_BASE64_LICENSE
-            # Your license key goes here. When using more than one node, a HA license is required. Without a HA license, the stateful set can have a replica count of 1.
-            value: <License-goes-here>
+            value: webmaster@lucasnet.org
+          # - name: OCTOPUS_SERVER_BASE64_LICENSE
+          #   # Your license key goes here. When using more than one node, a HA license is required. Without a HA license, the stateful set can have a replica count of 1.
+          #   value: <License-goes-here>
           - name: MASTER_KEY
             # Replace this, as this value protects secrets in Octopus
-            value: <MasterKey-goes-here>
+            # CREATE KEY first:  "openssl rand 16 | base64"
+            value: 03F7afnpvmvqTraR6FVXWA==
         ports:
         - containerPort: 8080
           name: web
@@ -142,6 +149,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: octopus-web
+  namespace: octopus
 spec:
   type: ClusterIP
   ports:
@@ -152,3 +160,21 @@ spec:
   selector:
     app: octopus
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: octopus-0
+  namespace: octopus
+spec:
+  type: LoadBalancer
+  ports:
+    - name: web
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: tentacle
+      port: 10943
+      targetPort: 10943
+      protocol: TCP
+  selector:
+    statefulset.kubernetes.io/pod-name: octopus-0

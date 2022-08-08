@@ -1,0 +1,33 @@
+---
+# Using mettallb loadbalancer
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-lb
+  namespace: default
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+spec:
+  ports:
+  - port: 1433
+    targetPort: 1433
+  selector:
+    app: mssql
+  type: LoadBalancer
+---
+# Using NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-nodeport
+  namespace: default
+spec:
+  ports:
+    - name: mssql
+      protocol: TCP
+      port: 1433
+      targetPort: 1433
+      nodePort: 30100
+  selector:
+    app: mssql
+  type: NodePort
