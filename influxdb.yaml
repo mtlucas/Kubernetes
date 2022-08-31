@@ -1,0 +1,107 @@
+# Influxdb:  https://hub.docker.com/_/influxdb
+
+# kubectl create secret generic influxdb-creds \
+#   --from-literal=INFLUXDB_DB=monitoring \
+#   --from-literal=INFLUXDB_HOST=influxdb  \
+#   --from-literal=INFLUXDB_HTTP_AUTH_ENABLED=true
+
+# Reference:  https://medium.com/starschema-blog/monitor-your-infrastructure-with-influxdb-and-grafana-on-kubernetes-a299a0afe3d2
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: monitoring
+  labels:
+    app: influxdb
+  name: influxdb-pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: monitoring
+  labels:
+    app: influxdb
+  name: influxdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: influxdb-creds
+        image: docker.io/influxdb:2.3-alpine
+        name: influxdb
+        volumeMounts:
+        - mountPath: /var/lib/influxdb
+          name: influxdb-var-lib
+      volumes:
+      - name: influxdb-var-lib
+        persistentVolumeClaim:
+          claimName: influxdb-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+  labels:
+    app: influxdb
+  name: influxdb
+  namespace: monitoring
+spec:
+  ports:
+  - port: 8086
+    targetPort: 8086
+    name: http
+  selector:
+    app: influxdb
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: influxdb-ingress
+  namespace: monitoring
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+      - influxdb.lucasnet.int
+      - influxdb.lucasnet.org
+      secretName: lucasnet-tls
+  rules:
+    - host: influxdb.lucasnet.int
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: influxdb
+              port:
+                number: 8086

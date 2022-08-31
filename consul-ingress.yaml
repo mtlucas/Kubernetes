@@ -1,0 +1,86 @@
+
+# First install using helm:
+#   helm install --values consul-helm-values.yaml consul hashicorp/consul --create-namespace --namespace consul
+#
+# consul-helm-values.yaml for SERVER:
+global:
+  name: consul
+  datacenter: homelab
+client:
+  exposeGossipPorts: true # exposes client gossip ports as hostPorts
+server:
+  exposeGossipAndRPCPorts: true # exposes the server gossip and RPC ports as hostPorts
+  ports:
+    serflan:
+      port: 9301
+  replicas: 3
+  securityContext:
+    runAsNonRoot: false
+    runAsGroup: 0
+    runAsUser: 0
+    fsGroup: 0
+ui:
+  enabled: true
+  service:
+    type: 'NodePort'
+connectInject:
+  enabled: false
+controller:
+  enabled: false
+---
+# consul-helm-values.yaml for AGENTS:
+global:
+  enabled: false
+  name: consul
+  datacenter: homelab
+server:
+  enabled: false
+externalServers:
+  enabled: false
+  hosts:
+    - ros-1.lucasnet.int
+    - ros-2.lucasnet.int
+    - ros-3.lucasnet.int
+  port: 9301
+client:
+  enabled: true
+  exposeGossipPorts: true
+  join:
+    - ros-1.lucasnet.int:9301
+    - ros-2.lucasnet.int:9301
+    - ros-3.lucasnet.int:9301
+  grpc: false
+  securityContext:
+    runAsNonRoot: true
+    runAsGroup: 1000
+    runAsUser: 100
+    fsGroup: 1000
+ui:
+  enabled: false
+connectInject:
+  enabled: false
+controller:
+  enabled: false
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: consul-ingress
+  namespace: consul
+spec:
+  tls:
+    - hosts:
+        - consul.lucasnet.int
+        - consul.lucasnet.org
+      secretName: lucasnet-tls
+  rules:
+    - host: consul.lucasnet.int
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: consul-ui
+                port:
+                  number: 80

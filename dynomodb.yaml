@@ -1,0 +1,155 @@
+# DynamoDB local
+# https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.UsageNotes.html
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: dynamodb
+  labels:
+    name: dynamodb
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dynamodb-data-dir-pvc
+  namespace: dynamodb
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dynamodb
+  name: dynamodb
+  namespace: dynamodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dynamodb
+  template:
+    metadata:
+      labels:
+        app: dynamodb
+    spec:
+      containers:
+      - image: amazon/dynamodb-local
+        name: dynamodb-local
+        ports:
+        - containerPort: 8000
+        command: ["java"]
+        args: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-optimizeDbBeforeStartup", "-dbPath", "/home/dynamodblocal/data"]
+        volumeMounts:
+          - name: data-dir
+            mountPath: /home/dynamodblocal/data
+      volumes:
+       - name: data-dir
+         persistentVolumeClaim:
+           claimName: dynamodb-data-dir-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dynamodb-admin
+  name: dynamodb-admin
+  namespace: dynamodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dynamodb-admin
+  template:
+    metadata:
+      labels:
+        app: dynamodb-admin
+    spec:
+      containers:
+      - image: mtlucas/dynamodb-admin:latest
+        name: dynamodb-admin
+        ports:
+        - containerPort: 8001
+        imagePullPolicy: Always
+        env:
+        - name: DYNAMO_ENDPOINT
+          value: http://dynamodb.dynamodb.svc:8000
+        - name: AWS_REGION
+          value: localhost
+        - name: AWS_ACCESS_KEY_ID
+          value: local
+        - name: AWS_SECRET_ACCESS_KEY
+          value: local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dynamodb
+  name: dynamodb
+  namespace: dynamodb
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+  selector:
+    app: dynamodb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dynamodb-admin
+  name: dynamodb-admin
+  namespace: dynamodb
+spec:
+  ports:
+  - port: 8001
+    targetPort: 8001
+  selector:
+    app: dynamodb-admin
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dynamodb-ingress
+  namespace: dynamodb
+spec:
+  tls:
+    - hosts:
+        - ros.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: ros.lucasnet.int
+      http:
+        paths:
+          - path: /dynamodb
+            pathType: Prefix
+            backend:
+              service:
+                name: dynamodb-admin
+                port:
+                  number: 8001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+  labels:
+    app: dynamodb
+  name: dynamodb-lb
+  namespace: dynamodb
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  selector:
+    app: dynamodb
+  type: LoadBalancer

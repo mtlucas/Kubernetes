@@ -14,7 +14,7 @@ metadata:
   labels:
     k8s-app: smokeping
 spec:
-  storageClassName: local-path
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   resources:
@@ -29,12 +29,256 @@ metadata:
   labels:
     k8s-app: smokeping
 spec:
-  storageClassName: local-path
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smokeping-targets
+  namespace: smokeping
+data:
+  game.properties: |
+    *** Targets ***
+
+    probe = FPing
+
+    menu = Top
+    title = Network Latency Grapher
+    remark = Welcome to the SmokePing website of WORKS Company. \
+            Here you will learn all about the latency of our network.
+
+    + Lucasnet
+
+    menu = Lucasnet
+    title = Lucasnet
+
+    ++ Asus-Router
+    menu = Asus Router
+    title = Asus Router
+    host = 192.168.0.1
+
+    ++ TP-Link-Router
+    menu = TP-Link Router
+    title = TP-Link Router
+    host = 192.168.0.2
+
+    ++ AWS-OpenVPN
+    menu = AWS OpenVPN
+    title = AWS OpenVPN
+    host = 10.0.3.47
+
+    ++ Azure-OpenVPN
+    menu = Azure OpenVPN
+    title = Azure OpenVPN
+    host = 10.10.1.4
+
+    + InternetSites
+
+    menu = Internet Sites
+    title = Internet Sites
+
+    ++ Facebook
+    menu = Facebook
+    title = Facebook
+    host = facebook.com
+
+    ++ Youtube
+    menu = YouTube
+    title = YouTube
+    host = youtube.com
+
+    ++ GoogleSearch
+    menu = Google
+    title = google.com
+    host = google.com
+
+    ++ linuxserverio
+    menu = linuxserver.io
+    title = linuxserver.io
+    host = linuxserver.io
+
+    + Europe
+
+    menu = Europe
+    title = European Connectivity
+
+    ++ Germany
+
+    menu = Germany
+    title = The Fatherland
+
+    +++ TelefonicaDE
+
+    menu = Telefonica DE
+    title = Telefonica DE
+    host = www.telefonica.de
+
+    ++ Switzerland
+
+    menu = Switzerland
+    title = Switzerland
+
+    +++ CernIXP
+
+    menu = CernIXP
+    title = Cern Internet eXchange Point
+    host = cixp.web.cern.ch
+
+    ++ UK
+
+    menu = United Kingdom
+    title = United Kingdom
+
+    +++ CambridgeUni
+
+    menu = Cambridge
+    title = Cambridge
+    host = cam.ac.uk
+
+    + USA
+
+    menu = North America
+    title = North American Connectivity
+
+    ++ MIT
+
+    menu = MIT
+    title = Massachusetts Institute of Technology Webserver
+    host = web.mit.edu
+
+    ++ IU
+
+    menu = IU
+    title = Indiana University
+    host = www.indiana.edu
+
+    ++ UCB
+
+    menu = U. C. Berkeley
+    title = U. C. Berkeley Webserver
+    host = www.berkeley.edu
+
+    ++ UCSD
+
+    menu = U. C. San Diego
+    title = U. C. San Diego Webserver
+    host = ucsd.edu
+
+    ++ UMN
+
+    menu =  University of Minnesota
+    title = University of Minnesota
+    host = twin-cities.umn.edu
+
+    ++ OSUOSL
+
+    menu = Oregon State University Open Source Lab
+    title = Oregon State University Open Source Lab
+    host = osuosl.org
+
+    + DNS
+    menu = DNS
+    title = DNS
+
+    ++ GoogleDNS1
+    menu = Google DNS 1
+    title = Google DNS 8.8.8.8
+    host = 8.8.8.8
+
+    ++ GoogleDNS2
+    menu = Google DNS 2
+    title = Google DNS 8.8.4.4
+    host = 8.8.4.4
+
+    ++ OpenDNS1
+    menu = OpenDNS1
+    title = OpenDNS1
+    host = 208.67.222.222
+
+    ++ OpenDNS2
+    menu = OpenDNS2
+    title = OpenDNS2
+    host = 208.67.220.220
+
+    ++ CloudflareDNS1
+    menu = Cloudflare DNS 1
+    title = Cloudflare DNS 1.1.1.1
+    host = 1.1.1.1
+
+    ++ CloudflareDNS2
+    menu = Cloudflare DNS 2
+    title = Cloudflare DNS 1.0.0.1
+    host = 1.0.0.1
+
+    ++ L3-1
+    menu = Level3 DNS 1
+    title = Level3 DNS 4.2.2.1
+    host = 4.2.2.1
+
+    ++ L3-2
+    menu = Level3 DNS 2
+    title = Level3 DNS 4.2.2.2
+    host = 4.2.2.2
+
+    ++ Quad9
+    menu = Quad9
+    title = Quad9 DNS 9.9.9.9
+    host = 9.9.9.9
+
+    + DNSProbes
+    menu = DNS Probes
+    title = DNS Probes
+    probe = DNS
+
+    ++ GoogleDNS1
+    menu = Google DNS 1
+    title = Google DNS 8.8.8.8
+    host = 8.8.8.8
+
+    ++ GoogleDNS2
+    menu = Google DNS 2
+    title = Google DNS 8.8.4.4
+    host = 8.8.4.4
+
+    ++ OpenDNS1
+    menu = OpenDNS1
+    title = OpenDNS1
+    host = 208.67.222.222
+
+    ++ OpenDNS2
+    menu = OpenDNS2
+    title = OpenDNS2
+    host = 208.67.220.220
+
+    ++ CloudflareDNS1
+    menu = Cloudflare DNS 1
+    title = Cloudflare DNS 1.1.1.1
+    host = 1.1.1.1
+
+    ++ CloudflareDNS2
+    menu = Cloudflare DNS 2
+    title = Cloudflare DNS 1.0.0.1
+    host = 1.0.0.1
+
+    ++ L3-1
+    menu = Level3 DNS 1
+    title = Level3 DNS 4.2.2.1
+    host = 4.2.2.1
+
+    ++ L3-2
+    menu = Level3 DNS 2
+    title = Level3 DNS 4.2.2.2
+    host = 4.2.2.2
+
+    ++ Quad9
+    menu = Quad9
+    title = Quad9 DNS 9.9.9.9
+    host = 9.9.9.9
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -61,7 +305,7 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            cpu: 500m
+            cpu: 200m
             memory: 200Mi
           requests:
             cpu: 100m
@@ -73,6 +317,8 @@ spec:
             name: config
           - mountPath: "/data"
             name: data
+          - mountPath: "/config/Targets"
+            name: targets
         env:
           - name: PUID
             value: "1000"
@@ -87,6 +333,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: smokeping-data
+        - name: targets
+          configMap:
+            name: smokeping-targets
 ---
 apiVersion: v1
 kind: Service
@@ -105,15 +354,25 @@ spec:
     k8s-app: smokeping
   type: ClusterIP
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: smokeping-ingress
   namespace: smokeping
+  labels:
+    app: smokeping
   annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
 spec:
+  tls:
+    - hosts:
+        - smokeping.lucasnet.int
+      secretName: lucasnet-tls
   rules:
-  - host: smokeping.dev.rph.int
+  - host: smokeping.lucasnet.int
   - http:
       paths:
       - backend:

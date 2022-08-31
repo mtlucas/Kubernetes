@@ -1,0 +1,36 @@
+# Traefik ingress and middleware for Lens metrics Prometheus
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: prometheus-mw
+  namespace: lens-metrics
+spec:
+  stripPrefix:
+    forceSlash: false
+    prefixes:
+      - /prometheus
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-ingress
+  namespace: lens-metrics
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: lens-metrics-prometheus-mw@kubernetescrd
+spec:
+  tls:
+  - hosts:
+    - k3os.lucasnet.int
+    secretName: lucasnet-tls
+  rules:
+    - host: k3os.lucasnet.int
+      http:
+        paths:
+        - path: /prometheus
+          pathType: Prefix
+          backend:
+            service:
+              name: prometheus
+              port:
+                number: 80

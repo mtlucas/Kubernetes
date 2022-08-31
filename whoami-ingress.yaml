@@ -41,7 +41,8 @@ spec:
         - k3os.lucasnet.int
       secretName: lucasnet-tls
   rules:
-    - http:
+    - host: k3os.lucasnet.int
+      http:
         paths:
           - path: /whoami
             pathType: Prefix

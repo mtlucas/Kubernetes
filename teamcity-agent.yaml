@@ -98,6 +98,7 @@ spec:
           # DOCKER_IN_DOCKER - must use linux-sudo image or run entire container as root since Docker must be started by root
           #image: jetbrains/teamcity-agent:2022.04.2-linux-sudo
           image: mtlucas/teamcity-agent:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 9090
           securityContext:
@@ -184,7 +185,7 @@ spec:
         resources:
           requests:
             # uses 262M on my local cluster
-            storage: 1Gi
+            storage: 5Gi
     - metadata:
         name: teamcity-agent-logs
       spec:
@@ -194,7 +195,7 @@ spec:
         resources:
           requests:
             # after nearly a year as the team's only CI system for all releases the agent logs were rotated to be only 50-70MB - this may increase if we add more pipelines or do more iterations and deployments but this has plenty of room
-            storage: 1Gi
+            storage: 5Gi
     - metadata:
         name: teamcity-agent-tools
       spec:
@@ -204,4 +205,4 @@ spec:
         resources:
           requests:
             # uses 73M on my local cluster for things like ant, gant, jps
-            storage: 2Gi
+            storage: 5Gi

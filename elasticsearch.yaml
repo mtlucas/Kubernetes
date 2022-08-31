@@ -1,0 +1,62 @@
+# helm repo add elastic https://helm.elastic.co
+# helm repo update
+# helm install elasticsearch elastic/elasticsearch -f elastic-helm-values.yaml  --namespace=elk --create-namespace
+#
+# elasticsearch-helm-values.yaml
+replicas: 1
+antiAffinity: "soft"
+esJavaOpts: "-Xmx256m -Xms256m"
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 10Gi
+resources:
+  requests:
+    cpu: "100m"
+    memory: "1024M"
+  limits:
+    cpu: "500m"
+    memory: "1024M"
+---
+# Kibana Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: elk
+spec:
+  tls:
+    - hosts:
+        - elk.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: elk.lucasnet.int
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kibana-kibana
+                port:
+                  number: 5601
+---
+# ElasticSearch Load Balancer
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+  labels:
+    app: elasticsearch
+  name: elasticsearch-lb
+  namespace: elk
+spec:
+  ports:
+  - port: 9200
+    targetPort: 9200
+    name: http
+  selector:
+    app: elasticsearch-master
+  type: LoadBalancer

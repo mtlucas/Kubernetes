@@ -1,0 +1,107 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: statping
+  labels:
+    name: statping
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: statping-vol
+  namespace: statping
+  labels:
+    k8s-app: statping
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: statping-config
+  namespace: statping
+data:
+  VIRTUAL_HOST: "status.lucasnet.int"
+  VIRTUAL_PORT: "8080"
+  DB_CONN: sqlite
+  NAME: "Lucasnet HomeLab Status Page"
+  DESCRIPTION: "Real-time status for my HomeLab systems and apps"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statping
+  namespace: statping
+  labels:
+    app: statping
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statping
+  template:
+    metadata:
+      labels:
+        app: statping
+    spec:
+      containers:
+      - name: statping
+        image: statping/statping:latest
+        envFrom:
+        - configMapRef:
+            name: statping-config
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+          - mountPath: "/app"
+            name: statping-vol
+      volumes:
+        - name: statping-vol
+          persistentVolumeClaim:
+            claimName: statping-vol
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: statping
+  namespace: statping
+  labels:
+    app: statping
+spec:
+  selector:
+    app: statping
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: statping-ingress
+  namespace: statping
+  labels:
+    app: statping
+spec:
+  tls:
+    - hosts:
+        - statping.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+  - host: statping.lucasnet.int
+  - http:
+      paths:
+      - backend:
+          service:
+            name: statping
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
