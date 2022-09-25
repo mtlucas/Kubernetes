@@ -1,5 +1,8 @@
 # DynamoDB local
 # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.UsageNotes.html
+#
+# ENV ASPNETCORE_URLS=http://+:5000
+# 
 ---
 kind: Namespace
 apiVersion: v1
@@ -45,6 +48,13 @@ spec:
         - containerPort: 8000
         command: ["java"]
         args: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-optimizeDbBeforeStartup", "-dbPath", "/home/dynamodblocal/data"]
+        env:
+          - name: 'AWS_ACCESS_KEY_ID'
+            value: 'local'
+          - name: 'AWS_SECRET_ACCESS_KEY'
+            value: 'local'
+          - name: 'AWS_REGION'
+            value: 'localhost'
         volumeMounts:
           - name: data-dir
             mountPath: /home/dynamodblocal/data
