@@ -1,0 +1,37 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch-1
+spec:
+  version: 8.4.3
+  nodeSets:
+  - name: default
+    count: 1
+    config:
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+      - metadata:
+          name: elasticsearch-data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+          storageClassName: azurefile-premium
+    podTemplate:
+      spec:
+        containers:
+          - name: elasticsearch
+            env: #java run time memory allocation
+              - name: ES_JAVA_OPTS
+                value: -Xms2g -Xmx2g
+        nodeSelector:
+          kubernetes.io/role: agent
+          beta.kubernetes.io/os: linux
+          type: virtual-kubelet
+        tolerations:
+          - key: virtual-kubelet.io/provider
+            operator: Exists
+          - key: azure.com/aci
+            effect: NoSchedule

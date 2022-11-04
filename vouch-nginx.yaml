@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+  namespace: vouch
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes  2;
+    error_log  /var/log/nginx/error.log;
+    events {
+      worker_connections  10240;
+    }
+    http {
+      log_format  main
+              'remote_addr:$remote_addr\t'
+              'time_local:$time_local\t'
+              'method:$request_method\t'
+              'uri:$request_uri\t'
+              'host:$host\t'
+              'status:$status\t'
+              'bytes_sent:$body_bytes_sent\t'
+              'referer:$http_referer\t'
+              'useragent:$http_user_agent\t'
+              'forwardedfor:$http_x_forwarded_for\t'
+              'request_time:$request_time';
+      access_log	/var/log/nginx/access.log main;
+      server {
+          listen       80;
+          server_name _;
+          #auth_request /vouch/validate;
+          location /vouch {
+            # This address is where Vouch will be listening on
+            proxy_pass http://vouch.vouch:9090;
+            proxy_set_header Host opensearch.lucasnet.int;
+            proxy_pass_request_body off; # no need to send the POST body
+            proxy_set_header Content-Length "";
+            proxy_set_header X-Original-URI $request_uri;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            # these return values are passed to the @error401 call
+            auth_request_set $auth_resp_x_vouch_user $upstream_http_x_vouch_user;
+            auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
+            auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
+            auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
+          }
+          error_page 401 = @error401;
+          location @error401 {
+            return 302 https://opensearch.lucasnet.org/vouch/login?url=https://opensearch.lucasnet.org$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err;
+          }
+          location / {
+            auth_request /vouch/validate;
+            proxy_pass https://opensearch-1.lucasnet.int;
+            proxy_set_header Host opensearch-1.lucasnet.int;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Vouch-User $auth_resp_x_vouch_user;
+          }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: vouch
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-conf-volume
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        - mountPath: /var/log/nginx
+          name: log
+      volumes:
+      - name: nginx-conf-volume
+        configMap:
+          name: nginx-conf
+          items:
+            - key: nginx.conf
+              path: nginx.conf
+      - name: log
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: vouch
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: nginx
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opensearch
+  namespace: vouch
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+    - hosts:
+        - opensearch.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: opensearch.lucasnet.int
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80

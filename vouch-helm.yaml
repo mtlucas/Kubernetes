@@ -1,0 +1,47 @@
+# Install Vouch via Helm:
+#   helm repo add vouch https://vouch.github.io/helm-charts/
+#   helm repo update
+#   helm install vouch vouch/vouch -n vouch --create-namespace
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vouch
+  namespace: vouch
+  labels:
+    app.kubernetes.io/instance: vouch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: vouch
+    helm.sh/chart: vouch-3.1.0
+  annotations:
+    meta.helm.sh/release-name: vouch
+    meta.helm.sh/release-namespace: vouch
+type: Opaque
+data:
+  config.yaml: >-
+    
+
+vouch:
+  logLevel: debug
+  allowAllUsers: false
+  domains: ['opensearch.lucasnet.org','opensearch.lucasnet.int','lucasnet.org','lucasnet.int']
+  cookie:
+    secure: true
+    domain: lucasnet.org
+  jwt:
+    secret: ""
+    compress: true
+  port: 9090
+  testing: false
+  whiteList: []
+  document_root: /vouch
+  headers:
+    jwt: X-Vouch-Token
+    querystring: access_token
+oauth:
+  callback_url: 'https://opensearch.lucasnet.org/vouch/auth'
+  client_id: ''
+  client_secret: ''
+  preferredDomain: null
+  provider: google

@@ -1,0 +1,55 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: kube-system
+  name: rke2-canal-reset
+rules:
+- apiGroups:
+  - extensions
+  - apps
+  resources:
+  - daemonsets
+  verbs:
+  - get
+  - patch
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rke2-canal-reset
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: sa-rke2-canal-reset
+  namespace: kube-system
+roleRef:
+  kind: Role
+  name: rke2-canal-reset
+  apiGroup: ""
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-rke2-canal-reset
+  namespace: kube-system
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: rke2-canal-reset
+  namespace: kube-system
+spec:
+  schedule: "0 22 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: sa-rke2-canal-reset
+          containers:
+          - name: rke2-canal-reset
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - kubectl rollout restart daemonset rke2-canal -n kube-system
+          restartPolicy: OnFailure

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aci-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aci-demo
+  template:
+    metadata:
+      labels:
+        app: aci-demo
+    spec:
+      containers:
+      - name: aci-demo
+        image: mcr.microsoft.com/azuredocs/aci-helloworld
+        ports:
+        - containerPort: 80
+      nodeSelector:
+        kubernetes.io/role: agent
+        beta.kubernetes.io/os: linux
+        type: virtual-kubelet
+      tolerations:
+        - key: virtual-kubelet.io/provider
+          operator: Exists
+        - key: azure.com/aci
+          effect: NoSchedule
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: aci-demo
+  name: aci-demo
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    name: http
+    targetPort: 80
+  selector:
+    app: aci-demo
+  type: ClusterIP

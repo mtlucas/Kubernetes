@@ -1,5 +1,6 @@
 
 # First install using helm:
+#   helm repo add hashicorp https://helm.releases.hashicorp.com
 #   helm install --values consul-helm-values.yaml consul hashicorp/consul --create-namespace --namespace consul
 #
 # consul-helm-values.yaml for SERVER:
@@ -46,9 +47,9 @@ client:
   enabled: true
   exposeGossipPorts: true
   join:
-    - ros-1.lucasnet.int:9301
-    - ros-2.lucasnet.int:9301
-    - ros-3.lucasnet.int:9301
+    - rke-1.lucasnet.int:9301
+    - rke-2.lucasnet.int:9301
+    - rke-3.lucasnet.int:9301
   grpc: false
   securityContext:
     runAsNonRoot: true
