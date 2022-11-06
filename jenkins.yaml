@@ -23,7 +23,10 @@ spec:
           containerPort: 50000
         volumeMounts:
         - name: jenkins-vol
-            mountPath: /var/jenkins_vol
+          mountPath: /var/jenkins_home
+        - name: lucasnet-ca
+          mountPath: /etc/ssl/certs/lucasnet-ca.pem
+          subPath: lucasnet-ca.pem
         resources:
           limits:
             cpu: 500m
@@ -33,7 +36,14 @@ spec:
             memory: 100Mi
       volumes:
         - name: jenkins-vol
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: jenkins-pvc
+        - name: lucasnet-ca
+          configMap:
+            name: lucasnet-ca
+            items:
+              - key: lucasnet-ca.pem
+                path: lucasnet-ca.pem
 ---
 apiVersion: v1
 kind: Service
@@ -59,3 +69,17 @@ spec:
       targetPort: 50000
   selector:
     app: jenkins
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: local-path
+  volumeMode: Filesystem

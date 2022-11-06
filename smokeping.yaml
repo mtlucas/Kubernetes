@@ -319,6 +319,7 @@ spec:
             name: data
           - mountPath: "/config/Targets"
             name: targets
+            subPath: Targets
         env:
           - name: PUID
             value: "1000"

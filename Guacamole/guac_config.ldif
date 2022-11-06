@@ -1,0 +1,48 @@
+# Using LDAP for authentication and configuration
+#
+#
+# docker run --name guacd -d guacamole/guacd
+#
+# docker run --name guacamole --link guacd:guacd -e LDAP_HOSTNAME=192.168.0.50 -e LDAP_USER_BASE_DN="OU=Users,OU=Lucasnet,DC=lucasnet,DC=int" -e LDAP_USERNAME_ATTRIBUTE=sAMAccountName -e LDAP_SEARCH_BIND_DN="CN=join_ad_sa,OU=ServiceAccounts,OU=Lucasnet,DC=lucasnet,DC=int" -e LDAP_SEARCH_BIND_PASSWORD="###CHANGE_ME###" -e LDAP_CONFIG_BASE_DN="OU=Guacamole,OU=Hosting,OU=Lucasnet,DC=lucasnet,DC=int" -d -p 8080:8080 guacamole/guacamole
+#
+#
+
+DN: CN=DC-1,OU=Guacamole,OU=Hosting,OU=Lucasnet,DC=lucasnet,DC=int
+changetype: add
+CN: DC-1
+objectClass: guacConfigGroup
+guacConfigProtocol: rdp
+guacConfigParameter: hostname=DC-1.lucasnet.int
+guacConfigParameter: port=3389
+guacConfigParameter: username=${GUAC_USERNAME}
+guacConfigParameter: password=${GUAC_PASSWORD}
+guacConfigParameter: domain=lucasnet.int
+guacConfigParameter: ignore-cert=true
+guacConfigParameter: security=nla
+member: CN=Mike Lucas,OU=Users,OU=Lucasnet,DC=lucasnet,DC=int
+
+
+DN: CN=DC-2,OU=Guacamole,OU=Hosting,OU=Lucasnet,DC=lucasnet,DC=int
+changetype: add
+CN: DC-2
+objectClass: guacConfigGroup
+guacConfigProtocol: rdp
+guacConfigParameter: hostname=DC-2.lucasnet.int
+guacConfigParameter: port=3389
+guacConfigParameter: username=${GUAC_USERNAME}
+guacConfigParameter: password=${GUAC_PASSWORD}
+guacConfigParameter: domain=lucasnet.int
+guacConfigParameter: ignore-cert=true
+guacConfigParameter: security=nla
+member: CN=Mike Lucas,OU=Users,OU=Lucasnet,DC=lucasnet,DC=int
+
+DN: CN=RasberryPi,OU=Guacamole,OU=Hosting,OU=Lucasnet,DC=lucasnet,DC=int
+changetype: add
+CN: RasberryPi
+objectClass: guacConfigGroup
+guacConfigProtocol: vnc
+guacConfigParameter: hostname=rasberrypi.lucasnet.int
+guacConfigParameter: port=5900
+guacConfigParameter: username=
+guacConfigParameter: password=${GUAC_PASSWORD}
+member: CN=Mike Lucas,OU=Users,OU=Lucasnet,DC=lucasnet,DC=int
