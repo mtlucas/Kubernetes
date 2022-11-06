@@ -77,8 +77,8 @@ mariadb:
   auth:
     database: icinga2
     username: icinga2
-    password: icinga2-pass
-    rootPassword: icinga2rootpass
+    password: CHANGE_ME
+    rootPassword: CHANGE_ME
   primary:
     persistence:
       enabled: false
