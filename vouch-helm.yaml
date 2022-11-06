@@ -20,7 +20,7 @@ metadata:
 type: Opaque
 data:
   config.yaml: >-
-    
+    dm91Y2g6CiAgbG9nTGV2ZWw6IGRlYnVnCiAgYWxsb3dBbGxVc2VyczogZmFsc2UKICBkb21haW5zOiBbJ29wZW5zZWFyY2gubHVjYXNuZXQub3JnJywnb3BlbnNlYXJjaC5sdWNhc25ldC5pbnQnLCdsdWNhc25ldC5vcmcnLCdsdWNhc25ldC5pbnQnXQogIGNvb2tpZToKICAgIHNlY3VyZTogdHJ1ZQogICAgZG9tYWluOiBsdWNhc25ldC5vcmcKICBqd3Q6CiAgICBzZWNyZXQ6ICIiCiAgICBjb21wcmVzczogdHJ1ZQogIHBvcnQ6IDkwOTAKICB0ZXN0aW5nOiBmYWxzZQogIHdoaXRlTGlzdDogW10KICBkb2N1bWVudF9yb290OiAvdm91Y2gKICBoZWFkZXJzOgogICAgand0OiBYLVZvdWNoLVRva2VuCiAgICBxdWVyeXN0cmluZzogYWNjZXNzX3Rva2VuCm9hdXRoOgogIGNhbGxiYWNrX3VybDogJ2h0dHBzOi8vb3BlbnNlYXJjaC5sdWNhc25ldC5vcmcvdm91Y2gvYXV0aCcKICBjbGllbnRfaWQ6ICcxMDQ1MTg1NjMyNzM3LWVzZzFkNGgzdTlhZmtxY3VycXJhYzA3NDhyZ2NkdXU1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tJwogIGNsaWVudF9zZWNyZXQ6ICdHT0NTUFgtSk1rTzJ1a3hVYzNfTFF1bk13SHJPSkd3MlR0eicKICBwcmVmZXJyZWREb21haW46IG51bGwKICBwcm92aWRlcjogZ29vZ2xlCg==
 
 vouch:
   logLevel: debug
@@ -41,7 +41,7 @@ vouch:
     querystring: access_token
 oauth:
   callback_url: 'https://opensearch.lucasnet.org/vouch/auth'
-  client_id: ''
-  client_secret: ''
+  client_id: '1045185632737-esg1d4h3u9afkqcurqrac0748rgcduu5.apps.googleusercontent.com'
+  client_secret: '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'
   preferredDomain: null
   provider: google
