@@ -42,7 +42,7 @@ data:
       urls = [
         "http://influxdb.monitoring.svc:8086"
       ]
-      token = "JJ5lp_Q_TzHOjQlZ21r7bW00IGcaeDDKv18cDDNM8fP78ceDkrUL7YXPofWU75tNTyPd_OdDftYt8mF1cUBViw=="
+      token = "###CHANGE_ME###"
       organization = "lucasnet"
       bucket = "vmware"
 
