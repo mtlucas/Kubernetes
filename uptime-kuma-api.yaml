@@ -1,0 +1,80 @@
+# Uptime-kuma Api, requires authentication:
+#
+# curl -L -v -X POST -H "Content-Type: application/x-www-form-urlencoded" --data "username=admin&password=CHANGE_ME" https://uptime-kuma-api.lucasnet.int/login/access-token/
+#
+# curl -L -H "Accept: application/json" -H "Authorization: Bearer <FROM_ABOVE>" http://localhost:24897/monitors/
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uptime-kuma-api
+  namespace: kuma
+spec:
+  selector:
+    app: uptime-kuma-api
+  ports:
+  - name: uptime-kuma-api
+    port: 8000
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: uptime-kuma-api
+  namespace: kuma
+spec:
+  replicas: 1
+  serviceName: uptime-kuma-api
+  selector:
+    matchLabels:
+      app: uptime-kuma-api
+  template:
+    metadata:
+      labels:
+        app: uptime-kuma-api
+    spec:
+      containers:
+        - name: uptime-kuma-api
+          image: medaziz11/uptimekuma_restapi
+          env:
+            - name: KUMA_SERVER
+              value: https://uptime-kuma-service.kuma.svc:3001
+            - name: KUMA_USERNAME
+              value: Admin
+            - name: KUMA_PASSWORD
+              value: CHANGE_ME
+            - name: ADMIN_PASSWORD
+              value: CHANGE_ME
+          ports:
+            - name: uptime-kuma-api
+              containerPort: 8000
+              protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptime-kuma
+  namespace: kuma
+  annotations:
+    kubernetes.io/ingress.class: "nginx"    
+    #cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  tls:
+  - hosts:
+    - uptime-kuma-api.lucasnet.int
+    secretName: lucasnet-tls
+  rules:
+  - host: uptime-kuma-api.lucasnet.int
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: uptime-kuma-api
+            port:
+              number: 8000

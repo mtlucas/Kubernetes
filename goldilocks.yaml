@@ -1,0 +1,68 @@
+# Goldilocks helm install with pre-reqs
+#   https://artifacthub.io/packages/helm/fairwinds-stable/goldilocks
+#   https://goldilocks.docs.fairwinds.com/installation/#requirements
+
+### First, install metrics-server (https://github.com/kubernetes-sigs/metrics-server):
+
+# kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+### Second, install VPA on node with KUBECTL and KUBECONFIG:
+
+# git clone https://github.com/kubernetes/autoscaler.git
+# cd autoscaler/vertical-pod-autoscaler/hack
+# ./vpa-up.sh
+
+### Finally, install Goldilocks via helm:
+
+# helm repo add fairwinds-stable https://charts.fairwinds.com/stable
+# helm repo update
+# helm install goldilocks --namespace goldilocks fairwinds-stable/goldilocks --create-namespace
+
+# Output similar:
+# NAME: goldilocks
+# LAST DEPLOYED: Fri Mar  3 13:41:54 2023
+# NAMESPACE: goldilocks
+# STATUS: deployed
+# REVISION: 1
+# TEST SUITE: None
+# NOTES:
+# 1. Get the application URL by running these commands:
+#   export POD_NAME=$(kubectl get pods --namespace goldilocks -l "app.kubernetes.io/name=goldilocks,app.kubernetes.io/instance=goldilocks,app.kubernetes.io/component=dashboard" -o jsonpath="{.items[0].metadata.name}")
+#   echo "Visit http://127.0.0.1:8080 to use your application"
+#   kubectl port-forward $POD_NAME 8080:80
+#
+
+# Enable Namespace for Goldilocks analysis:
+#
+# kubectl label ns <namespace-name> goldilocks.fairwinds.com/enabled=true
+
+
+# Ingress:
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: goldilocks
+  namespace: goldilocks
+  labels:
+    app.kubernetes.io/name: goldilocks
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - goldilocks.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: goldilocks.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: goldilocks-dashboard
+                port:
+                  number: 80

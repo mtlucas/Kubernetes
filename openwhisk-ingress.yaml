@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: openwhisk-ingress
+  namespace: openwhisk
+  labels:
+    app: openwhisk-openwhisk
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - openwhisk.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: openwhisk.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: openwhisk-nginx
+                port:
+                  number: 80

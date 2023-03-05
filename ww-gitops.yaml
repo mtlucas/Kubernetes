@@ -1,0 +1,21 @@
+# Install Weave Gitops dashboard via gitops command:
+#
+#    https://docs.gitops.weave.works/docs/next/installation/weave-gitops/
+
+# export GITHUB_USER=mtlucas
+# curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.18.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+# sudo mv /tmp/gitops /usr/local/bin
+# gitops version
+
+# git clone https://github.com/$GITHUB_USER/fluxcd
+# cd fluxcd
+
+# PASSWORD="CHANGE_ME"
+# gitops create dashboard ww-gitops \
+#   --password=$PASSWORD \
+#   --export > ./clusters/my-cluster/weave-gitops-dashboard.yaml
+
+# git add -A && git commit -m "Add Weave GitOps Dashboard"
+# git push
+
+# kubectl get pods -n flux-system

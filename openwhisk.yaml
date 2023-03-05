@@ -1,0 +1,176 @@
+# Openwhisk helm install
+#
+# helm repo add openwhisk https://openwhisk.apache.org/charts
+# helm repo update
+# helm upgrade openwhisk openwhisk/openwhisk -n openwhisk --create-namespace -f .\openwhisk.yaml
+# helm status openwhisk
+# helm get openwhisk
+# helm test openwhisk -n openwhisk
+
+# To configure your wsk cli to connect to it, set the apihost property
+# using the command below:
+#   $ wsk property set --apihost openwhisk.lucasnet.int:31001
+# Your release is named openwhisk.
+# To learn more about the release, try:
+#   $ helm status openwhisk
+#   $ helm get openwhisk
+# Once the 'openwhisk-install-packages' Pod is in the Completed state, your OpenWhisk deployment is ready to be used.
+# Once the deployment is ready, you can verify it using:
+#   $ helm test openwhisk --cleanup
+
+# mycluster.yaml
+whisk:
+  ingress:
+    apiHostName: "openwhisk.lucasnet.int"
+
+affinity:
+  enabled: false
+
+toleration:
+  enabled: false
+
+invoker:
+  options: "-Dwhisk.kubernetes.user-pod-node-affinity.enabled=false"
+---
+# Delete/Update job with working ow-utils docker image (npm upgrades succeed now)
+#
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: openwhisk-install-packages
+#   namespace: openwhisk
+#   labels:
+#     app: openwhisk-openwhisk
+#     app.kubernetes.io/managed-by: Helm
+#     chart: openwhisk-1.0.0
+#     heritage: Helm
+#     name: openwhisk-install-packages
+#     release: openwhisk
+#   annotations:
+#     batch.kubernetes.io/job-tracking: ''
+#     meta.helm.sh/release-name: openwhisk
+#     meta.helm.sh/release-namespace: openwhisk
+# spec:
+#   parallelism: 1
+#   completions: 1
+#   backoffLimit: 3
+#   template:
+#     metadata:
+#       name: openwhisk-install-packages
+#       labels:
+#         app: openwhisk-openwhisk
+#         chart: openwhisk-1.0.0
+#         heritage: Helm
+#         job-name: openwhisk-install-packages
+#         name: openwhisk-install-packages
+#         release: openwhisk
+#     spec:
+#       volumes:
+#         - name: task-dir
+#           configMap:
+#             name: openwhisk-install-packages-cm
+#             defaultMode: 420
+#       initContainers:
+#         - name: wait-for-healthy-invoker
+#           image: busybox:latest
+#           command:
+#             - sh
+#             - '-c'
+#             - >-
+#               echo 0 > /tmp/count.txt; while true; do echo 'waiting for healthy
+#               invoker'; wget -T 5 -qO /tmp/count.txt --no-check-certificate
+#               "$READINESS_URL"; NUM_HEALTHY_INVOKERS=$(cat /tmp/count.txt); if [
+#               $NUM_HEALTHY_INVOKERS -gt 0 ]; then echo "Success: there are
+#               $NUM_HEALTHY_INVOKERS healthy invokers"; break; fi; echo '...not
+#               ready yet; sleeping 3 seconds before retry'; sleep 3; done;
+#           env:
+#             - name: READINESS_URL
+#               value: >-
+#                 http://openwhisk-controller.openwhisk.svc.cluster.local:8080/invokers/healthy/count
+#           terminationMessagePath: /dev/termination-log
+#           terminationMessagePolicy: File
+#           imagePullPolicy: IfNotPresent
+#       containers:
+#         - name: install-packages
+#           image: openwhisk/ow-utils:a03507c
+#           command:
+#             - /bin/bash
+#             - '-c'
+#             - set -e; . /task/myTask.sh
+#           env:
+#             - name: WHISK_AUTH
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: openwhisk-whisk.auth
+#                   key: system
+#             - name: WHISK_API_HOST
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: openwhisk-whisk.config
+#                   key: whisk_api_host_nameAndPort
+#             - name: WHISK_API_HOST_URL
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: openwhisk-whisk.config
+#                   key: whisk_api_host_url
+#             - name: WHISK_SYSTEM_NAMESPACE
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: openwhisk-whisk.config
+#                   key: whisk_system_namespace
+#             - name: WHISK_API_GATEWAY_HOST_V2
+#               value: http://openwhisk-apigateway.openwhisk.svc.cluster.local:9000/v2
+#             - name: PROVIDER_DB_HOST
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: openwhisk-db.config
+#                   key: db_host
+#             - name: PROVIDER_DB_PROTOCOL
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: openwhisk-db.config
+#                   key: db_protocol
+#             - name: PROVIDER_DB_PORT
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: openwhisk-db.config
+#                   key: db_port
+#             - name: PROVIDER_DB_USERNAME
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: openwhisk-db.auth
+#                   key: db_username
+#             - name: PROVIDER_DB_PASSWORD
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: openwhisk-db.auth
+#                   key: db_password
+#             - name: ALARM_DB_PREFIX
+#               value: alm
+#             - name: KAFKA_DB_PREFIX
+#               value: kp
+#             - name: OW_INSTALL_ALARM_PROVIDER
+#               value: 'yes'
+#             - name: OW_INSTALL_KAFKA_PROVIDER
+#               value: 'yes'
+#             - name: OW_GIT_TAG_OPENWHISK
+#               value: 1.0.0
+#             - name: OW_GIT_TAG_OPENWHISK_CATALOG
+#               value: 0.11.0
+#             - name: OW_GIT_TAG_OPENWHISK_PACKAGE_ALARMS
+#               value: 2.2.0
+#             - name: OW_GIT_TAG_OPENWHISK_PACKAGE_KAFKA
+#               value: 2.1.0
+#           volumeMounts:
+#             - name: task-dir
+#               mountPath: /task/myTask.sh
+#               subPath: myTask.sh
+#           terminationMessagePath: /dev/termination-log
+#           terminationMessagePolicy: File
+#           imagePullPolicy: IfNotPresent
+#       restartPolicy: Never
+#       terminationGracePeriodSeconds: 30
+#       dnsPolicy: ClusterFirst
+#       schedulerName: default-scheduler
+#   completionMode: NonIndexed
+#   suspend: false

@@ -1,0 +1,48 @@
+# Metabase helm install:
+#
+# helm repo add pmint93 https://pmint93.github.io/helm-charts
+# helm repo update
+# helm install metabase pmint93/metabase --namespace metabase --create-namespace
+
+# Tweaks:
+# helm upgrade metabase pmint93/metabase --namespace metabase --set database.type=mysql --set database.host=mysql.mysql.svc --set database.port=3306 --set database.dbname=metabase --set database.username=root --set database.password=CHANGE_ME
+# 
+# NAME: metabase
+# LAST DEPLOYED: Thu Jan 19 09:06:55 2023
+# NAMESPACE: metabase
+# STATUS: deployed
+# REVISION: 1
+# TEST SUITE: None
+# NOTES:
+# 1. Get the application URL by running these commands:
+#   export POD_NAME=$(kubectl get pods --namespace metabase -l "app=metabase,release=metabase" -o jsonpath="{.items[0].metadata.name}")
+#   echo "Visit http://127.0.0.1:8080 to use your application"
+#   kubectl port-forward --namespace metabase $POD_NAME 8080:3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: metabase
+  namespace: metabase
+  labels:
+    app: metabase
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - metabase.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: metabase.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: metabase
+                port:
+                  number: 80

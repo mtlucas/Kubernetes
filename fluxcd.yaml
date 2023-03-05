@@ -1,0 +1,6 @@
+# Install Fluxcd via helm:
+
+# helm repo add fluxcd-community https://fluxcd-community.github.io/helm-charts
+# helm repo update
+# helm search repo fluxcd-community
+

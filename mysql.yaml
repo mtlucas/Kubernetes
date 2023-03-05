@@ -1,0 +1,57 @@
+# MySQL cluster install:
+#
+# helm repo add my-repo https://charts.bitnami.com/bitnami
+# helm repo update
+# helm install mysql my-repo/mysql --namespace mysql --create-namespace --set primary.startupProbe.enabled=false --set primary.readinessProbe.enabled=false --set primary.livenessProbe.enabled=false --set secondary.replicaCount=0
+#
+# NAME: mysql
+# LAST DEPLOYED: Thu Jan 19 14:33:43 2023
+# NAMESPACE: mysql
+# STATUS: deployed
+# REVISION: 1
+# TEST SUITE: None
+# NOTES:
+# CHART NAME: mysql
+# CHART VERSION: 9.4.6
+# APP VERSION: 8.0.31
+
+# ** Please be patient while the chart is being deployed **
+
+# Tip:
+
+#   Watch the deployment status using the command: kubectl get pods -w --namespace mysql
+
+# Services:
+
+#   echo Primary: mysql.mysql.svc.cluster.local:3306
+
+# Execute the following to get the administrator credentials:
+
+#   echo Username: root
+#   MYSQL_ROOT_PASSWORD=$(kubectl get secret --namespace mysql mysql -o jsonpath="{.data.mysql-root-password}" | base64 -d)
+
+# To connect to your database:
+
+#   1. Run a pod that you can use as a client:
+
+#       kubectl run mysql-client --rm --tty -i --restart='Never' --image  docker.io/bitnami/mysql:8.0.31-debian-11-r30 --namespace mysql --env MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD --command -- bash
+
+#   2. To connect to primary service (read/write):
+
+#       mysql -h mysql.mysql.svc.cluster.local -uroot -p"$MYSQL_ROOT_PASSWORD"
+---
+# Using mettallb loadbalancer
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-lb
+  namespace: mysql
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app.kubernetes.io/instance: mysql
+  type: LoadBalancer

@@ -1,0 +1,27 @@
+# Datalore helm install:
+#
+# helm repo add datalore https://jetbrains.github.io/datalore-configs/charts
+# helm repo update
+# helm install -f datalore.values.yaml datalore datalore/datalore --version 0.2.6 --namespace datalore --create-namespace
+---
+databaseSecret:
+  password: CHANGE_ME
+volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+  - metadata:
+      name: postgresql-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+dataloreEnv:
+  DATALORE_PUBLIC_URL: "https://datalore.lucasnet.int"

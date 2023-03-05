@@ -1,0 +1,110 @@
+# Node-red k8s install:
+#
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: node-red
+  labels:
+    name: node-red
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: node-red
+  name: node-red-pvc
+  namespace: node-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: node-red
+  name: node-red
+  namespace: node-red
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-red
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: node-red
+    spec:
+      containers:
+        - image: adamhancock/node-red
+          imagePullPolicy: Always
+          name: node-red
+          ports:
+            - containerPort: 1880
+              protocol: TCP
+          resources: {}
+          env:
+            - name: TZ
+              value: Europe/London
+            - name: PGID
+              value: "1000"
+            - name: PUID
+              value: "1000"
+          volumeMounts:
+            - mountPath: /data
+              name: node-red-claim0
+      volumes:
+        - name: node-red-pvc
+          persistentVolumeClaim:
+            claimName: node-red-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: node-red
+  name: node-red
+  namespace: node-red
+spec:
+  ports:
+    - name: "1880"
+      port: 1880
+      protocol: TCP
+      targetPort: 1880
+  selector:
+    app: node-red
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: node-red
+  namespace: node-red
+  labels:
+    app: node-red
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - node-red.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: node-red.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: node-red
+                port:
+                  number: 1880

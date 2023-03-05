@@ -1,0 +1,12 @@
+# Install Trivy-operator via Flux:
+#
+#    https://trivy.dev/
+#
+# set GITHUB_TOKEN=CHANGE_ME
+# set GITHUB_USER=mtlucas
+# flux check --pre
+# flux bootstrap github --owner=%GITHUB_USER% --repository=fluxcd --branch=main --path=./clusters/my-cluster --personal # Must execute from C: drive
+#
+# kubectl create namespace trivy
+# flux create source helm trivy-operator --url https://aquasecurity.github.io/helm-charts --namespace=trivy
+# flux create helmrelease trivy-operator --chart trivy-operator --source HelmRepository/trivy-operator --chart-version 0.12.0 --namespace trivy

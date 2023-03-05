@@ -1,0 +1,7 @@
+# Install Hostpath storageClass:
+
+# https://artifacthub.io/packages/helm/rimusz/hostpath-provisioner
+
+# helm repo add rimusz https://charts.rimusz.net
+# helm repo update
+# helm upgrade --install hostpath-provisioner -n hostpath-provisioner rimusz/hostpath-provisioner

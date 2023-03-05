@@ -1,0 +1,72 @@
+# Discourse Forum install:
+#
+# https://bitnami.com/stack/discourse/helm
+#
+# helm repo add bitnami https://charts.bitnami.com/bitnami
+# helm repo update
+# helm install discourse bitnami/discourse --namespace discourse --create-namespace
+
+# NAME: discourse
+# LAST DEPLOYED: Wed Jan 18 17:22:20 2023
+# NAMESPACE: discourse
+# STATUS: deployed
+# REVISION: 1
+# TEST SUITE: None
+# NOTES:
+# CHART NAME: discourse
+# CHART VERSION: 9.0.8
+# APP VERSION: 2.8.13
+
+# ** Please be patient while the chart is being deployed **Discourse can be accessed via port 80 on the following DNS name from within your cluster:
+
+#     discourse.discourse.svc.cluster.local
+
+# To connect to Discourse from outside the cluster, perform the following steps:
+
+# 1.  Create a port-forward to the service:
+
+#     kubectl port-forward --namespace discourse svc/discourse 80:80 &
+#     echo "Discourse URL: http://127.0.0.1:80"
+
+# 2. Open a browser and access Discourse using the obtained URL.
+
+# 3. Get your Discourse login credentials by running:
+
+#     export DISCOURSE_PASSWORD=$(kubectl get secret --namespace "discourse" discourse-discourse -o jsonpath="{.data.discourse-password}" | base64 -d)
+#     echo User:     user
+#     echo Password: $DISCOURSE_PASSWORD
+
+# Update Configmap:
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: discourse
+  namespace: discourse
+  labels:
+    app.kubernetes.io/instance: discourse
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: discourse
+    helm.sh/chart: discourse-10.0.3
+  annotations:
+    meta.helm.sh/release-name: discourse
+    meta.helm.sh/release-namespace: discourse
+data:
+  DISCOURSE_DATABASE_HOST: discourse-postgresql
+  DISCOURSE_DATABASE_NAME: bitnami_application
+  DISCOURSE_DATABASE_PORT_NUMBER: '5432'
+  DISCOURSE_DATABASE_USER: bn_discourse
+  DISCOURSE_EMAIL: mike@lucasnet.org
+  DISCOURSE_HOST: 127.0.0.1
+  DISCOURSE_REDIS_HOST: discourse-redis-master
+  DISCOURSE_REDIS_PORT_NUMBER: '6379'
+  DISCOURSE_SITE_NAME: Lucasnet.int
+  DISCOURSE_SKIP_INSTALL: 'no'
+  DISCOURSE_USERNAME: user
+  PASSENGER_COMPILE_NATIVE_SUPPORT_BINARY: '0'
+  PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY: '0'
+  POSTGRESQL_CLIENT_CREATE_DATABASE_EXTENSIONS: hstore,pg_trgm
+  POSTGRESQL_CLIENT_CREATE_DATABASE_NAME: bitnami_application
+  POSTGRESQL_CLIENT_DATABASE_HOST: discourse-postgresql
+  POSTGRESQL_CLIENT_DATABASE_PORT_NUMBER: '5432'
+  POSTGRESQL_CLIENT_POSTGRES_USER: postgres

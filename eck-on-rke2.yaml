@@ -1,0 +1,131 @@
+# Elasticsearch and Kibana on my RKE2 cluster with ingress
+#
+# Make sure ECK helm chart is installed first (https://www.elastic.co/guide/en/cloud-on-k8s/master/k8s-install-helm.html):
+#   helm repo add elastic https://helm.elastic.co
+#   helm repo update
+#   helm install elastic-operator elastic/eck-operator -n elastic-system --create-namespace
+#
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch-1
+  namespace: elastic-system
+spec:
+  version: 7.17.8
+  nodeSets:
+  - name: default
+    count: 1
+    config:
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+      - metadata:
+          name: elasticsearch-data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 30Gi
+          storageClassName: longhorn
+    podTemplate:
+      spec:
+        containers:
+          - name: elasticsearch
+            env: #java run time memory allocation
+              - name: ES_JAVA_OPTS
+                value: -Xms1g -Xmx1g
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana-1
+  namespace: elastic-system
+spec:
+  version: 7.17.8
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch-1
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: elastic-ingress
+  namespace: elastic-system
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  tls:
+    - hosts:
+        - elastic.lucasnet.int
+        - elastic.lucasnet.org
+      secretName: lucasnet-tls
+  rules:
+    - host: elastic.lucasnet.int
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: elasticsearch-1-es-http
+                port:
+                  number: 9200
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: elastic-system
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  tls:
+    - hosts:
+        - kibana.lucasnet.int
+        - kibana.lucasnet.org
+        - opensearch.lucasnet.int
+        - opensearch.lucasnet.org
+      secretName: lucasnet-tls
+  rules:
+    - host: kibana.lucasnet.int
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kibana-1-kb-http
+                port:
+                  number: 5601
+#
+# Create logstash index and template using dev tools
+#
+# PUT _template/logstash_template
+# {
+#   "index_patterns": [
+#     "logstash-*"
+#   ],
+#     "settings": {
+#       "number_of_shards": 1,
+#       "number_of_replicas": 1,
+#       "index.lifecycle.name": "3-days-no-rollover",
+#       "index.lifecycle.rollover_alias": "logstash"
+#     }
+# }
+
+# PUT logstash-2023.01.19
+# {
+#   "aliases": {
+#     "logstash": {
+#       "is_write_index": true
+#     }
+#   }
+# }

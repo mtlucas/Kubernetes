@@ -1,0 +1,124 @@
+# Docker Compose
+
+# version: '3.6'
+
+# services:
+#   flame:
+#     image: pawelmalak/flame
+#     container_name: flame
+#     volumes:
+#       - /path/to/host/data:/app/data
+#       - /var/run/docker.sock:/var/run/docker.sock # optional but required for Docker integration
+#     ports:
+#       - 5005:5005
+#     secrets:
+#       - password # optional but required for (1)
+#     environment:
+#       - PASSWORD=flame_password
+#       - PASSWORD_FILE=/run/secrets/password # optional but required for (1)
+#     restart: unless-stopped
+
+# # optional but required for Docker secrets (1)
+# secrets:
+#   password:
+#     file: /path/to/secrets/password
+
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: flame
+  labels:
+    name: flame
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: flame-pvc
+  namespace: flame
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flame
+  namespace: flame
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flame
+  template:
+    metadata:
+      labels:
+        app: flame
+    spec:
+      containers:
+      - name: flame
+        image: pawelmalak/flame
+        ports:
+        - name: http-port
+          containerPort: 5005
+        volumeMounts:
+        - name: flame-data
+          mountPath: /app/data
+        env:
+          - name: PASSWORD
+            value: CHANGE_ME
+      volumes:
+        - name: flame-data
+          persistentVolumeClaim:
+            claimName: flame-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flame
+  namespace: flame
+  labels: 
+    app: flame
+spec:
+  type: ClusterIP
+  selector:
+    app: flame
+  ports:
+  - port: 80
+    targetPort: 5005
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flame
+  namespace: flame
+  labels:
+    app: flame
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+    flame.pawelmalak/type: app
+    flame.pawelmalak/name: flame
+    flame.pawelmalak/url: https://flame.lucasnet.int
+    #flame.pawelmalak/icon: icon-name # optional, default is "kubernetes"
+spec:
+  tls:
+    - hosts:
+        - flame.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: flame.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: flame
+                port:
+                  number: 80

@@ -1,0 +1,28 @@
+# Install Netdata:
+#
+# helm repo add netdata https://netdata.github.io/helmchart/
+# helm repo update
+# helm install netdata netdata/netdata --namespace netdata --create-namespace --set parent.claiming.enabled="true"   --set parent.claiming.token=xwYLzJz6C95rOwS3d77dTxmN9xpcKa2D0SMBWzzxdoXNsTNEq2XxMF3jYQBf0dJlx-TPJMInznxNUBbW60Uv8ch0ZvKeTbBfAw6z4sYHY5xFUx1wojLIYs3XHOUVe5BPZ4iXhvg   --set child.claiming.enabled="true"   --set child.claiming.token=xwYLzJz6C95rOwS3d77dTxmN9xpcKa2D0SMBWzzxdoXNsTNEq2XxMF3jYQBf0dJlx-TPJMInznxNUBbW60Uv8ch0ZvKeTbBfAw6z4sYHY5xFUx1wojLIYs3XHOUVe5BPZ4iXhvg
+
+# W0217 20:03:38.496260  816782 warnings.go:70] policy/v1beta1 PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
+# W0217 20:03:38.601493  816782 warnings.go:70] policy/v1beta1 PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
+# NAME: netdata
+# LAST DEPLOYED: Fri Feb 17 20:03:37 2023
+# NAMESPACE: default
+# STATUS: deployed
+# REVISION: 1
+# TEST SUITE: None
+# NOTES:
+# 1. netdata will be available on http://netdata.k8s.local/, on the exposed port of your ingress controller
+
+# In a production environment, you
+#  You can get that port via `kubectl get services`. e.g. in the following example, the http exposed port is 31737, the https one is 30069.
+#  The hostname netdata.k8s.local will need to be added to /etc/hosts, so that it resolves to the exposed IP. That IP depends on how your cluster is set up:
+#         - When no load balancer is available (e.g. with minikube), you get the IP shown on `kubectl cluster-info`
+#         - In a production environment, the command `kubectl get services` will show the IP under the EXTERNAL-IP column
+
+# The port can be retrieved in both cases from `kubectl get services`
+
+# NAME                                         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+# exiled-tapir-nginx-ingress-controller        LoadBalancer   10.98.132.169    <pending>     80:31737/TCP,443:30069/TCP   11h
+---

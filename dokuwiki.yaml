@@ -1,0 +1,33 @@
+# Dokuwiki helm install:
+#
+# helm repo add bitnami https://charts.bitnami.com/bitnami
+# helm repo update
+# helm install dokuwiki bitnami/dokuwiki --namespace dokuwiki --create-namespace --set dokuwikiUsername=admin,dokuwikiPassword=password
+#
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dokuwiki
+  namespace: dokuwiki
+  labels:
+    app.kubernetes.io/instance: dokuwiki
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - dokuwiki.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: dokuwiki.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: dokuwiki
+                port:
+                  number: 80

@@ -1,0 +1,127 @@
+# Pihole Helm chart install:
+#
+# helm repo add mojo2600 https://mojo2600.github.io/pihole-kubernetes/
+# helm repo update
+# helm install pihole mojo2600/pihole --namespace pihole --create-namespace
+#
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: pihole
+  labels:
+    name: pihole
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pihole
+  namespace: pihole
+spec:
+  hostNetwork: true
+  dnsPolicy: "None"
+  dnsConfig:
+    nameservers:
+      # upstream DNS used by pihole.
+      - 192.168.0.50
+      - 192.168.0.51
+  containers:
+    - name: pihole
+      # https://hub.docker.com/r/pihole/pihole/tags
+      image: pihole/pihole:latest
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: TZ
+          value: "America/Chicago"
+        #- name: WEBPASSWORD
+        #  value: <CUSTOMIZE>
+      securityContext:
+        privileged: true
+      ports:
+        - containerPort: 53
+          protocol: TCP
+        - containerPort: 53
+          protocol: UDP
+        - containerPort: 67
+          protocol: UDP
+        - containerPort: 80
+          protocol: TCP
+        - containerPort: 443
+          protocol: TCP
+      volumeMounts:
+        - name: etc
+          mountPath: /etc/pihole
+        - name: dnsmasq
+          mountPath: /etc/dnsmasq.d
+      resources:
+        requests:
+          memory: 128Mi
+          cpu: 100m
+        limits:
+          memory: 2Gi
+          cpu: "1"
+  volumes:
+    - name: etc
+      hostPath:
+        path: /data/pihole/etc
+        type: Directory
+    - name: dnsmasq
+      hostPath:
+        path: /data/pihole/dnsmasq.d
+        type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-dns-lb
+  namespace: pihole
+  labels:
+    app: pihole
+spec:
+  ports:
+    - name: dns-udp
+      protocol: UDP
+      port: 53
+      targetPort: 53
+    - name: dns-tcp
+      protocol: TCP
+      port: 53
+      targetPort: 53
+  selector:
+    app: pihole
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  allocateLoadBalancerNodePorts: true
+  internalTrafficPolicy: Cluster
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pihole-web
+  namespace: pihole
+  labels:
+    app: pihole
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - pihole-admin.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: pihole-admin.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: pihole-web
+                port:
+                  number: 80

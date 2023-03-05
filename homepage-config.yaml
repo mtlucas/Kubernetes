@@ -1,0 +1,362 @@
+# Services
+- HomeLab:
+  - Asus Router:
+      href: https://rtr-asus-1.lucasnet.int:8443/
+      icon: asus-router.png
+      description: RT-AX58U
+  - Auth0:
+      href: https://manage.auth0.com/dashboard/
+      icon: https://cdn.freebiesupply.com/logos/large/2x/auth0-logo-png-transparent.png
+      description: Console
+  - AWS:
+      href: https://accounts.google.com/o/saml2/initsso?idpid=C01o7pavs&spid=1050958645641&forceauthn=false
+      icon: aws.png
+      description: Console
+  - AWX:
+      href: https://awx.lucasnet.int/
+      icon: awx.png
+      description: Ansible
+  - Azure:
+      href: https://portal.azure.com/#home
+      icon: azure.png
+      description: Console
+  - Better Uptime:
+      href: https://betteruptime.com/team/46565/monitors
+      icon: https://betterstack.com/packs/static/better-stack-button-4c4aa3104b3d35029f16.png
+      description: Console
+  - Bitwarden:
+      href: https://vault.bitwarden.com/#/login
+      icon: bitwarden.png
+      description: Password Manager
+  - Budibase:
+      href: https://budibase.lucasnet.int/
+      icon: budibase.png
+      description: No-code solution
+  - Checkmk:
+      href: https://checkmk-1.lucasnet.int/lucasnet/
+      icon: checkmk.png
+      description: Dashboard
+  - Consul:
+      href: https://consul.lucasnet.int/ui/homelab/nodes
+      icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT34vYAe8TB_yw3PAGhuDTrLu6ond95wF1o0b8584c&s
+      description: Cluster
+  - CouchDB:
+      href: https://couchdb.lucasnet.int/_utils/
+      icon: https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,h_256,w_256,f_auto,q_auto:eco,dpr_1/jv751eodlrcbdy2fvxwd
+      description: Database mgmt
+  - Datalore:
+      href: https://datalore.lucasnet.int/
+      icon: https://cdn.cs.1worldsync.com/2c/88/2c881361-7b03-4f58-ad26-9f35cf440471.jpg
+      description: Console
+  - Discourse:
+      href: https://discourse.lucasnet.int
+      icon: https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/92_Discourse_logo_logos-512.png
+      description: Forums
+  - Docker:
+      href: https://hub.docker.com/
+      icon: docker.png
+      description: Hub
+  - Dokuwiki:
+      href: https://dokuwiki.lucasnet.int/
+      icon: dokuwiki.png
+      description: Portal
+  - DynamoDB:
+      href: https://dynamodb-admin.lucasnet.int/
+      icon: https://upload.wikimedia.org/wikipedia/commons/f/fd/DynamoDB.png
+      description: Admin
+  - Elasticsearch:
+      href: https://elastic.lucasnet.int/
+      icon: elasticsearch.png
+      description: Endpoint
+  - Freenom:
+      href: https://my.freenom.com/clientarea.php
+      icon: freenom.png
+      description: Domains
+  - GitGuardian:
+      href: https://dashboard.gitguardian.com/
+      icon: https://docs.gitguardian.com/img/gg_owl.svg
+      description: Console
+  - Github:
+      href: https://github.com/mtlucas
+      icon: github.png
+      description: Console
+  - Google Cloud:
+      href: https://console.cloud.google.com/home/dashboard
+      icon: google-cloud-platform.png
+      description: Console
+  - Grafana:
+      href: https://grafana.lucasnet.int/
+      icon: grafana.png
+      description: Dashboard
+  - Guacamole:
+      href: https://guacamole.lucasnet.int/guacamole/
+      icon: guacamole.png
+      description: Remote access
+  - InfluxDB:
+      href: http://influxdb-1.lucasnet.int:8086/
+      icon: influxdb.png
+      description: Dashboard
+  - Jenkins:
+      href: http://jenkins.lucasnet.int/blue/organizations/jenkins/
+      icon: jenkins.png
+      description: CI/CD
+  - Kibana:
+      href: https://kibana.lucasnet.int/app/home#/
+      icon: kibana.png
+      description: Console
+  - Kube-Test:
+      href: http://localhost:30882/
+      icon: https://k21academy.com/wp-content/uploads/2021/06/aaa.png
+      description: Local
+  - Kubernetes:
+      href: https://localhost:30562/#/
+      icon: kubernetes-dashboard.png
+      description: Dashboard
+  - Loadmaster:
+      href: https://loadmaster-1.lucasnet.int/
+      icon: https://d7umqicpi7263.cloudfront.net/img/product/d6a7085c-fce9-4706-932a-3ea63ab3738b.png
+      description: Load Balancer
+  - Longhorn:
+      href: https://ros.lucasnet.int/k8s/clusters/local/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/#/dashboard
+      icon: longhorn.png
+      description: Storage
+  - Lucasnet:
+      href: https://status.lucasnet.org/
+      icon: https://uptime-storage.s3.amazonaws.com/logos/2d63d71c8d0adba281c6cd04b586896b.png
+      description: Status Page
+  - Maintenance:
+      href: https://rke-1.lucasnet.int:32149/
+      icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFK-xg78RNmaseL7iN0bPZF2Pl0EfAJkgL1uwrIwp397jO3Vi1oH16etoFz9s0gS05qtU&usqp=CAU
+      description: Site
+  - Metabase:
+      href: https://metabase.lucasnet.int/
+      icon: metabase.png
+      description: Business Intelligence
+  - Netdata:
+      href: https://app.netdata.cloud/
+      icon: netdata.png
+      description: Monitoring
+  - New Relic:
+      href: https://one.newrelic.com/infra?account=3571599&duration=3600000
+      icon: https://cdn.freebiesupply.com/logos/large/2x/new-relic-logo-png-transparent.png
+      description: Dashboard
+  - Nginx Proxy Manager:
+      href: https://npm.lucasnet.int/
+      icon: nginxproxymanager.png
+      description: Local Docker
+  - Node-RED:
+      href: https://node-red.lucasnet.int/
+      icon: nodered.png
+      description: Event-driven design
+  - Nuget:
+      href: https://nuget.lucasnet.int/
+      icon: https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/NuGet_project_logo.svg/2048px-NuGet_project_logo.svg.png
+      description: Repository
+  - Octopus:
+      href: https://octopus-web.lucasnet.int/app
+      icon: https://miro.medium.com/max/600/1*biz_x1f_EKa7SZY4544ePw.png
+      description: Deploy
+  - OpenFaaS:
+      href: https://openfaas.lucasnet.int/
+      icon: openfaas.png
+      description: Functions
+  - Opensearch:
+      href: https://opensearch.lucasnet.org/app/home
+      icon: elasticsearch.png
+      description: Lucasnet Kubernetes
+  - pfSense:
+      href: https://pfsense-1.lucasnet.int/
+      icon: pfsense.png
+      description: Firewall/Proxy
+  - Pihole:
+      href: https://pihole.lucasnet.int/admin/
+      icon: pihole.png
+      description: Admin Console
+  - Plex:
+      href: https://plex.lucasnet.int
+      icon: plex-square.png
+      description: Dashboard
+  - Portainer:
+      href: https://localhost:9443/
+      icon: portainer.png
+      description: Local Docker
+  - Prometheus:
+      href: https://prometheus.lucasnet.int/targets
+      icon: prometheus.png
+      description: Monitoring
+  - Proxmox:
+      href: https://proxmox.lucasnet.int/
+      icon: proxmox.png
+      description: Virtual Env
+  - Rancher:
+      href: https://ros.lucasnet.int/dashboard/home
+      icon: rancher.png
+      description: Cluster mgmt
+  - Read the Docs:
+      href: https://lucasnetcode-kubernetes-collection.readthedocs.io/en/latest/#
+      icon: readthedocs.png
+      description: Lucasnet Code
+  - Redis:
+      href: https://redis-commander.lucasnet.int
+      icon: redis.png
+      description: Commander
+  - Sendgrid:
+      href: https://app.sendgrid.com/
+      icon: https://sendgrid.com/wp-content/themes/sgdotcom/pages/resource/brand/2016/SendGrid-Logomark.png
+      description: Console
+  - Seq:
+      href: http://localhost:5341/#/
+      icon: https://img.stackshare.io/service/4284/seq-nuget.png
+      description: Dashboard
+  - Slack Api:
+      href: https://api.slack.com/apps
+      icon: slack.png
+      description: Console
+  - Smokeping:
+      href: https://smokeping.lucasnet.org/smokeping/
+      icon: smokeping.png
+      description: Latency Monitoring
+  - Statping:
+      href: https://statping.lucasnet.org/dashboard/services
+      icon: statping.png
+      description: Homelab
+  - Statping:
+      href: https://statping-1.lucasnet.org/dashboard/
+      icon: statping.png
+      description: AWS
+  - Statping:
+      href: https://statping-2.lucasnet.org/dashboard/
+      icon: statping.png
+      description: Azure
+  - Tailscale:
+      href: https://login.tailscale.com/
+      icon: tailscale.png
+      description: Console
+  - Teamcity:
+      href: https://teamcity.lucasnet.int/
+      icon: https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/TeamCity_Icon.svg/1200px-TeamCity_Icon.svg.png
+      description: Server
+  - tp-link:
+      href: https://rtr-tplink-1.lucasnet.int/
+      icon: tplink.png
+      description: Archer A7 Router
+  - tp-link:
+      href: http://sw-tplink.lucasnet.int/
+      icon: tplink.png
+      description: Switch
+  - Traefik:
+      href: http://localhost:10467/dashboard/#/
+      icon: traefik.png
+      description: Local Docker
+  - TrueNAS:
+      href: https://truenas-1.lucasnet.int/
+      icon: truenas.png
+      description: Core
+  - Twilio:
+      href: https://www.twilio.com/login
+      icon: https://www.twilio.com/assets/icons/twilio-icon-512_maskable.png
+      description: Console
+  - Uptime Kuma:
+      href: https://uptime-kuma.lucasnet.int/dashboard
+      icon: uptime-kuma.png
+      description: Local Dashboard
+  - VisualStudio.com:
+      href: https://lucasnet.visualstudio.com/
+      icon: https://1000logos.net/wp-content/uploads/2020/08/Visual-Studio-Logo.png
+      description: Lucasnet
+  - VMware:
+      href: https://vcenter-1.lucasnet.int/ui/
+      icon: vmware.png
+      description: vSphere
+  - VMware:
+      href: https://vcenter-1.lucasnet.int:5480/#/login
+      icon: vmwareesxi.png
+      description: vCenter Management
+  - Whoami:
+      href: https://whoami.lucasnet.int/whoami
+      icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKWcr4toWkNS8BRVOFv5FMEG2B0gUD5n2s415DooQ&s
+      description: RKE Kubernetes
+  - Whoami:
+      href: https://whoami-2.lucasnet.int/whoami
+      icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKWcr4toWkNS8BRVOFv5FMEG2B0gUD5n2s415DooQ&s
+      description: Rancher Desktop
+---
+# Bookmarks
+- Development:
+  - Github:
+    - abbr: GH
+      href: https://github.com/
+  - JSON Linter:
+    - href: https://jsonlint.com/
+      abbr: JSON
+  - JSON to YAML:
+    - href: https://www.json2yaml.com/
+      abbr: YAML
+  - Pastebin:
+    - href: https://pastebin.com/
+      abbr: PB
+  - UUID Generator:
+    - href: https://www.uuidgenerator.net/
+      abbr: UUID
+- Cloud:
+  - AWS Console:
+    - href: https://accounts.google.com/o/saml2/initsso?idpid=C01o7pavs&spid=1050958645641&forceauthn=false
+      abbr: AWS
+  - Azure Console:
+    - href: https://portal.azure.com/#home
+      abbr: AZ
+  - Cloudflare Dashboard:
+    - href: https://dash.cloudflare.com/login
+      abbr: CF
+  - Google Cloud Console:
+    - href: https://console.cloud.google.com/
+      abbr: GC
+- Apis:
+  - Amazon Developer:
+    - href: https://developer.amazon.com/dashboard
+      abbr: AD
+  - IFTTT:
+    - href: https://ifttt.com/explore
+      abbr: IFTTT
+  - WeatherApi:
+    - href: https://www.weatherapi.com/my/
+      abbr: WA
+- Blogs:
+  - Blogger - Lucascloud:
+    - href: https://lucascloud.blogspot.com/
+      abbr: LC
+  - Reddit - Lucasnet:
+    - href: https://www.reddit.com/r/lucasnet/
+      abbr: LN
+---
+# Settings
+title: Lucasnet Homepage
+backgroundOpacity: 0.5
+favicon: https://uptime-storage.s3.amazonaws.com/logos/2d63d71c8d0adba281c6cd04b586896b.png
+layout:
+  HomeLab:
+    style: row
+---
+# Widgets
+- kubernetes:
+    cluster:
+      cpu: true
+      label: cluster
+      memory: true
+      show: true
+      showLabel: true
+    nodes:
+      cpu: true
+      memory: true
+      show: true
+      showLabel: true
+- search:
+    provider: google
+    target: _blank
+- weatherapi:
+    label: Madison
+    latitude: 43.073536
+    longitude: -89.3943808
+    units: imperial
+    apiKey: CHANGE_ME
+    cache: 5

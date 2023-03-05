@@ -1,0 +1,10 @@
+# Adds CNAME type record for kube-dns
+# Necessary for clusters using CoreDNS
+apiVersion: v1
+kind: Service
+metadata:
+  name: "kube-dns"
+  namespace: kube-system
+spec:
+  type: ExternalName
+  externalName: "rke2-coredns-rke2-coredns.kube-system.svc.cluster.local"

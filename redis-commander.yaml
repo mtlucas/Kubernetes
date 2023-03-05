@@ -1,0 +1,113 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: redis
+  labels:
+    name: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-commander
+  namespace: redis
+  annotations:
+    # Tell Kubernetes to apply the AppArmor or SecComp profile "runtime/default". (whatever is used)
+    # Note that this is ignored if the Kubernetes node is not running version 1.4 or greater.
+    # and fails if AppArmor enabled but profile not found (may happens on borked k8s installs only)
+    # set to "unconfined" to disable AppArmor (first annotation) or SecComp (second annotation)
+    container.apparmor.security.beta.kubernetes.io/redis-commander: runtime/default
+    container.security.alpha.kubernetes.io/redis-commander: runtime/default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-commander
+  template:
+    metadata:
+      labels:
+        app: redis-commander
+        tier: backend
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: redis-commander
+          image: rediscommander/redis-commander
+          imagePullPolicy: Always
+          env:
+            - name: REDIS_HOST
+              value: 'redis-master.redis.svc'
+            - name: REDIS_USERNAME
+              value: 'redis'
+            - name: REDIS_PASSWORD
+              value: 'CHANGE_ME'
+            - name: K8S_SIGTERM
+              value: "1"
+          ports:
+            - name: redis-commander
+              containerPort: 8081
+          livenessProbe:
+            httpGet:
+              path: /favicon.png
+              port: 8081
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+          # adapt to your needs base on data stored inside redis (number of keys and size of biggest keys)
+          # or comment out for less secure installation
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512M"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: redis-commander
+  name: redis-commander
+  namespace: redis
+spec:
+  ports:
+    - name: http
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+  selector:
+    app: redis-commander
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: redis-commander-web
+  namespace: redis
+  labels:
+    app: redis-commander
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - redis-commander.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: redis-commander.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: redis-commander
+                port:
+                  number: 8081

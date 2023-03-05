@@ -1,0 +1,201 @@
+# Homepage Helm install:
+#
+# helm repo add jameswynn https://jameswynn.github.io/helm-charts
+# helm repo update
+# helm install homepage jameswynn/homepage -f values.yaml --namespace homepage --createnamespace
+
+# Values.yaml
+---
+config:
+  bookmarks:
+    - Developer:
+        - Github:
+            - abbr: GH
+              href: https://github.com/
+  services:
+    - My First Group:
+        - My First Service:
+            href: http://localhost/
+            description: Homepage is awesome
+
+    - My Second Group:
+        - My Second Service:
+            href: http://localhost/
+            description: Homepage is the best
+
+    - My Third Group:
+        - My Third Service:
+            href: http://localhost/
+            description: Homepage is 😎
+  widgets:
+    # show the kubernetes widget, with the cluster summary and individual nodes
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: "cluster"
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - search:
+        provider: duckduckgo
+        target: _blank
+  kubernetes:
+    mode: cluster
+  settings:
+
+# The service account is necessary to allow discovery of other services
+serviceAccount:
+  create: true
+  name: homepage
+# This enables the service account to access the necessary resources
+enableRbac: true
+ingress:
+  main:
+    enabled: true
+    annotations:
+      # Example annotations to add Homepage to your Homepage!
+      gethomepage.dev/enabled: "true"
+      gethomepage.dev/name: "Homepage"
+      gethomepage.dev/description: "Dynamically Detected Homepage"
+      gethomepage.dev/group: "Dynamic"
+      gethomepage.dev/icon: "homepage.png"
+    hosts:
+      - host: homepage.lucasnet.int
+        paths:
+          - path: /
+            pathType: Prefix
+---
+# Update Deployment with HostPath volume for icons
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homepage
+  namespace: homepage
+  labels:
+    app.kubernetes.io/instance: homepage
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: homepage
+    app.kubernetes.io/version: v0.6.0
+    helm.sh/chart: homepage-1.0.0
+  annotations:
+    deployment.kubernetes.io/revision: '1'
+    meta.helm.sh/release-name: homepage
+    meta.helm.sh/release-namespace: homepage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: homepage
+      app.kubernetes.io/name: homepage
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: homepage
+        app.kubernetes.io/name: homepage
+    spec:
+      volumes:
+        - name: homepage-icons
+          hostPath:
+            path: /mnt/c/Develop/OpenSource_Code/dashboard-icons/png
+            type: Directory
+        - name: homepage-config
+          configMap:
+            name: homepage
+            defaultMode: 420
+        - name: logs
+          emptyDir: {}
+      containers:
+        - name: homepage
+          image: ghcr.io/benphelps/homepage:v0.6.0
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - name: homepage-icons
+              mountPath: /app/public/icons
+            - name: homepage-config
+              mountPath: /app/config
+            - name: logs
+              mountPath: /app/config/logs
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 30
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      serviceAccountName: homepage
+      serviceAccount: homepage
+      automountServiceAccountToken: true
+      securityContext: {}
+      schedulerName: default-scheduler
+      enableServiceLinks: true
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 600
+---
+# Ingress for traefik
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: homepage-http
+  namespace: homepage
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Host(`homepage.lucasnet.int`)
+      priority: 10
+      services:
+        - name: homepage
+          port: 3000
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: homepage-https
+  namespace: homepage
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`homepage.lucasnet.int`)
+      priority: 10
+      services:
+        - name: homepage
+          port: 3000
+  tls:
+    secretName: lucasnet-tls
