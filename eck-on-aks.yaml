@@ -25,7 +25,7 @@ spec:
           - name: elasticsearch
             env: #java run time memory allocation
               - name: ES_JAVA_OPTS
-                value: -Xms2g -Xmx2g
+                value: -Xms1g -Xmx1g
         nodeSelector:
           kubernetes.io/role: agent
           beta.kubernetes.io/os: linux

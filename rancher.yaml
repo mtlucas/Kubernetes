@@ -2,5 +2,6 @@
 # helm repo update
 # helm fetch rancher-latest/rancher
 # helm get values rancher -n cattle-system
+# helm fetch rancher-latest/rancher --version=2.7.0
 # helm upgrade rancher rancher-latest/rancher --namespace cattle-system --set hostname=ros.lucasnet.int
 # 

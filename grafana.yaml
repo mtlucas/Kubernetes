@@ -40,7 +40,7 @@ spec:
       - envFrom:
         - secretRef:
             name: grafana-creds
-        image: docker.io/grafana/grafana:8.5.10
+        image: docker.io/grafana/grafana:8.5.15
         name: grafana
         volumeMounts:
           - name: data-dir

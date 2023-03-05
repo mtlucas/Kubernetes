@@ -20,28 +20,26 @@ metadata:
 type: Opaque
 data:
   config.yaml: >-
-    CHANGE_ME
-
-vouch:
-  logLevel: debug
-  allowAllUsers: false
-  domains: ['opensearch.lucasnet.org','opensearch.lucasnet.int','lucasnet.org','lucasnet.int']
-  cookie:
-    secure: true
-    domain: lucasnet.org
-  jwt:
-    secret: ""
-    compress: true
-  port: 9090
-  testing: false
-  whiteList: []
-  document_root: /vouch
-  headers:
-    jwt: X-Vouch-Token
-    querystring: access_token
-oauth:
-  callback_url: 'https://opensearch.lucasnet.org/vouch/auth'
-  client_id: 'CHANGE_ME'
-  client_secret: 'CHANGE_ME'
-  preferredDomain: null
-  provider: google
+    vouch:
+      logLevel: debug
+      allowAllUsers: false
+      domains: ['opensearch.lucasnet.org','opensearch.lucasnet.int','lucasnet.org','lucasnet.int']
+      cookie:
+        secure: true
+        domain: lucasnet.org
+      jwt:
+        secret: ""
+        compress: true
+      port: 9090
+      testing: false
+      whiteList: []
+      document_root: /vouch
+      headers:
+        jwt: X-Vouch-Token
+        querystring: access_token
+    oauth:
+      callback_url: 'https://opensearch.lucasnet.org/vouch/auth'
+      client_id: 'CHANGE_ME'
+      client_secret: 'CHANGE_ME'
+      preferredDomain: null
+      provider: google

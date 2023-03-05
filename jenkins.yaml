@@ -1,8 +1,16 @@
-# kubectl create namespace jenkins
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: jenkins
+  labels:
+    name: jenkins
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jenkins
+  namespace: jenkins
 spec:
   replicas: 1
   selector:
@@ -49,6 +57,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: jenkins
+  namespace: jenkins
 spec:
   type: NodePort
   ports:
@@ -62,6 +71,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: jenkins-jnlp
+  namespace: jenkins
 spec:
   type: ClusterIP
   ports:
@@ -74,7 +84,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: jenkins-pvc
-  namespace: default
+  namespace: jenkins
 spec:
   accessModes:
     - ReadWriteOnce
@@ -83,3 +93,21 @@ spec:
       storage: 2Gi
   storageClassName: local-path
   volumeMode: Filesystem
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jenkins-https
+  namespace: jenkins
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`jenkins.lucasnet.int`)
+      priority: 10
+      services:
+        - name: jenkins
+          port: 8080
+  tls:
+    secretName: lucasnet-tls

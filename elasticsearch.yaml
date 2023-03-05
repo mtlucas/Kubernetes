@@ -1,8 +1,11 @@
+# Elasticsearch install via helm (no operator)
+#
 # helm repo add elastic https://helm.elastic.co
 # helm repo update
 # helm install elasticsearch elastic/elasticsearch -f elastic-helm-values.yaml  --namespace=elk --create-namespace
 #
-# elasticsearch-helm-values.yaml
+# Elasticsearch-helm-values.yaml
+---
 replicas: 1
 antiAffinity: "soft"
 esJavaOpts: "-Xmx256m -Xms256m"
@@ -60,3 +63,26 @@ spec:
   selector:
     app: elasticsearch-master
   type: LoadBalancer
+---
+# Bootstrap index:
+# PUT logstash-2023.01.19
+# {
+#   "aliases": {
+#     "logstash": {
+#       "is_write_index": true
+#     }
+#   }
+# }
+
+# PUT _template/logstash_template
+# {
+#   "index_patterns": [
+#     "logstash-*"
+#   ],
+#     "settings": {
+#       "number_of_shards": 1,
+#       "number_of_replicas": 1,
+#       "index.lifecycle.name": "3-days-no-rollover",
+#       "index.lifecycle.rollover_alias": "logstash"
+#     }
+# }
