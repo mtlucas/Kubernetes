@@ -1,8 +1,17 @@
+# RabbitMQ operator via helm:
+#
+#     https://www.rabbitmq.com/kubernetes/operator/install-operator.html
+#
+# helm repo add bitnami https://charts.bitnami.com/bitnami
+# helm repo update
+# helm install rabbitmq-operator bitnami/rabbitmq-cluster-operator --namespace rabbitmq --create-namepsace
+#
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: RabbitmqCluster
 metadata:
   name: rabbitmq-cluster
+  namespace: rabbitmq
 spec:
   replicas: 2
   resources:
@@ -40,22 +49,48 @@ spec:
                 matchLabels:
                   app.kubernetes.io/name: rabbitmq-cluster
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: v1
+kind: Service
 metadata:
   annotations:
+    metallb.universe.tf/address-pool: first-pool
+  labels:
     app: rabbitmq-cluster
-  name: rabbitmq-admin-ingress
-  namespace: default
+  name: rabbitmq-lb
+  namespace: rabbitmq
 spec:
+  ports:
+  - port: 5672
+    targetPort: 5672
+    name: tcp
+  selector:
+    app: rabbitmq-cluster
+  type: LoadBalancer
+---
+version: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-admin-ingress
+  namespace: rabbitmq
+  annotations:
+    app: rabbitmq-cluster
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - rabbitmq-admin.lucasnet.int
+      secretName: lucasnet-tls
   rules:
-  - host: rabbitmq.internal
-    http:
-      paths:
-      - backend:
-          service:
-            name: rabbitmq-cluster
-            port:
-              number: 15672
-        path: /
-        pathType: Prefix
+    - host: rabbitmq-admin.lucasnet.int
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq-cluster
+                port:
+                  number: 15672

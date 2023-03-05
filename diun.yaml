@@ -97,7 +97,7 @@ spec:
             - name: DIUN_PROVIDERS_KUBERNETES
               value: "true"
             - name: DIUN_NOTIF_SLACK_WEBHOOKURL
-              value: "https://hooks.slack.com/services/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"
+              value: "CHANGE_ME"
             - name: DIUN_NOTIF_SLACK_RENDERFIELDS
               value: "true"
             - name: DIUN_NOTIF_SLACK_TEMPLATEBODY

@@ -2,7 +2,7 @@
 #
 # helm repo add netdata https://netdata.github.io/helmchart/
 # helm repo update
-# helm install netdata netdata/netdata --namespace netdata --create-namespace --set parent.claiming.enabled="true"   --set parent.claiming.token=xwYLzJz6C95rOwS3d77dTxmN9xpcKa2D0SMBWzzxdoXNsTNEq2XxMF3jYQBf0dJlx-TPJMInznxNUBbW60Uv8ch0ZvKeTbBfAw6z4sYHY5xFUx1wojLIYs3XHOUVe5BPZ4iXhvg   --set child.claiming.enabled="true"   --set child.claiming.token=xwYLzJz6C95rOwS3d77dTxmN9xpcKa2D0SMBWzzxdoXNsTNEq2XxMF3jYQBf0dJlx-TPJMInznxNUBbW60Uv8ch0ZvKeTbBfAw6z4sYHY5xFUx1wojLIYs3XHOUVe5BPZ4iXhvg
+# helm install netdata netdata/netdata --namespace netdata --create-namespace --set parent.claiming.enabled="true"   --set parent.claiming.token=CHANGE_ME   --set child.claiming.enabled="true"   --set child.claiming.token=CHANGE_ME
 
 # W0217 20:03:38.496260  816782 warnings.go:70] policy/v1beta1 PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
 # W0217 20:03:38.601493  816782 warnings.go:70] policy/v1beta1 PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
