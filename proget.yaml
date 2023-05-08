@@ -1,0 +1,120 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: proget
+  labels:
+    goldilocks.fairwinds.com/enabled: "true"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: proget-claim
+  namespace: proget
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: freenas-iscsi-csi
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proget
+  namespace: proget
+  labels:
+    app: proget
+spec:
+  selector:
+    matchLabels:
+      app: proget
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: proget
+    spec:
+      containers:
+      - name: proget
+        image: proget.inedo.com/productimages/inedo/proget:latest
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 30
+        env:
+          - name: PROGET_SQL_CONNECTION_STRING
+            value: 'Server=mssql.default,1433;Database=Proget;User ID=sa;Password=Password1234'
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: proget-packages
+          mountPath: /var/proget/packages
+      volumes:
+        - name: proget-packages
+          persistentVolumeClaim:
+            claimName: proget-claim
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proget
+  namespace: proget
+  labels: 
+    app: proget
+spec:
+  type: ClusterIP
+  selector:
+    app: proget
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: proget
+  namespace: proget
+  labels:
+    app: proget
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - proget.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: proget.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: proget
+                port:
+                  number: 80

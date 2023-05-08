@@ -1,0 +1,25 @@
+# Consul prometheus exporter
+#
+# https://artifacthub.io/packages/helm/prometheus-community/prometheus-consul-exporter
+#
+# helm install consul-exporter prometheus-community/prometheus-consul-exporter --namespace consul --set consulServer=consul-server:8500
+#
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: consul-metrics
+  namespace: monitoring
+  labels:
+    app: consul-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: http
+    scheme: http
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: prometheus-consul-exporter

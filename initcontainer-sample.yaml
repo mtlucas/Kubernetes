@@ -1,0 +1,11 @@
+      initContainers:
+        - name: prometheus-init
+          image: /something/bash-alpine:1.5
+          command:
+            - chown
+            - -R
+            - 65534:65534
+            - /data
+          volumeMounts:
+            - name: data
+              mountPath: /data

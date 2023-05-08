@@ -1,0 +1,49 @@
+# Add to deployment to overwrite Alpine CA certs:
+#
+# https://kubernetes.io/docs/concepts/storage/volumes/#using-subpath
+
+      #     volumeMounts:
+      #       - name: pfsense-ca
+      #         mountPath: /etc/ssl/certs/ca-certificates.crt
+      #         subPath: ca-certificates.crt
+
+      # volumes:
+      #   - name: pfsense-ca
+      #     configMap:
+      #       name: pfsense-ca
+      #       items:
+      #         - key: ca-certificates.crt
+      #           path: ca-certificates.crt
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pfsense-ca
+data:
+  ca-certificates.crt: |-
+    -----BEGIN CERTIFICATE-----
+    MIIEbDCCA1SgAwIBAgIIfPKheK3GwnwwDQYJKoZIhvcNAQELBQAwfTEcMBoGA1UE
+    AxMTaW50ZXJuYWwtcGZzZW5zZS1jYTELMAkGA1UEBhMCVVMxEjAQBgNVBAgTCVdp
+    c2NvbnNpbjEQMA4GA1UEBxMHTWFkaXNvbjEVMBMGA1UEChMMTHVjYXNuZXQub3Jn
+    MRMwEQYDVQQLEwpUZWNobm9sb2d5MB4XDTIyMTAwMjE5NDc1M1oXDTMyMDkyOTE5
+    NDc1M1owfTEcMBoGA1UEAxMTaW50ZXJuYWwtcGZzZW5zZS1jYTELMAkGA1UEBhMC
+    VVMxEjAQBgNVBAgTCVdpc2NvbnNpbjEQMA4GA1UEBxMHTWFkaXNvbjEVMBMGA1UE
+    ChMMTHVjYXNuZXQub3JnMRMwEQYDVQQLEwpUZWNobm9sb2d5MIIBIjANBgkqhkiG
+    9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuu/+9R0ntqhvoJghMYJo0/sqR34qOdrmBSVr
+    6bojNGULVW/5Hdcfq3LaFUqZ9iP7hQpWzaYwEKanCKc+Inw7Ca5rwS7Axe5ltF4n
+    sLXRDpUdKsciYnr3V6XldNMpEtP2LqNipIqSttYKlSElT0cR/mkfr2NiH5b/B1VH
+    O7D7ynpGSAd2M78SUlLGLnF3XaN6EuzLePHJluAo4FRsJMfOWzONBO7d6hdFzOeD
+    ITyTbTWHXXbHlNymIvdL0h+4qFVjQFWk5NHbluTvE5Zr0SurENnw1TYBK5fN0m56
+    mpaZ+tK8st6uTAyE/yvPhDx3QafpPx5T1LKi6Yygen6x77cXkwIDAQABo4HvMIHs
+    MB0GA1UdDgQWBBQGPX6Sx+2reVjvgrF4PZScMAE80zCBrwYDVR0jBIGnMIGkgBQG
+    PX6Sx+2reVjvgrF4PZScMAE806GBgaR/MH0xHDAaBgNVBAMTE2ludGVybmFsLXBm
+    c2Vuc2UtY2ExCzAJBgNVBAYTAlVTMRIwEAYDVQQIEwlXaXNjb25zaW4xEDAOBgNV
+    BAcTB01hZGlzb24xFTATBgNVBAoTDEx1Y2FzbmV0Lm9yZzETMBEGA1UECxMKVGVj
+    aG5vbG9neYIIfPKheK3GwnwwDAYDVR0TBAUwAwEB/zALBgNVHQ8EBAMCAQYwDQYJ
+    KoZIhvcNAQELBQADggEBAJCiWJTEI6yUc6JCzD+KIE2Q5nEaPuTB+0jHpUTu/875
+    /hjTvAR+Hu1Agk+BrTfYYrX6GtVvnnZYdbMVYGBebnyUgc4gL/RymGp/h7VGDgAn
+    rVztDzXAL2dl5/Y4lpzHifdB/t3GifYktCVaCpC2WuB3+Kf1iZG9DsOh2R9fTQA7
+    2w5+731dquRqyPjZqkvm/Sagvo4izK5iY6d+aRPjYw5gYkSsmPnGUrSu3kFyAcbg
+    oNyUoAGuM+9p0I8MaCTOx2TMmj6/4d7Sg1lCLnaNZ4et9IKxX3JSr5ptFe+Gck7V
+    0t6EtfcI95zT0S+KZd9W0LCHBB7l/tYB8Ydd8iP0GaY=
+    -----END CERTIFICATE-----

@@ -12,7 +12,7 @@ metadata:
   name: grafana-data-dir-pvc
   namespace: monitoring
 spec:
-  storageClassName: longhorn
+  storageClassName: freenas-iscsi-csi
   accessModes:
     - ReadWriteOnce
   resources:

@@ -1,0 +1,113 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: statping-ng
+  labels:
+    name: statping-ng
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: statping-ng-vol
+  namespace: statping-ng
+  labels:
+    k8s-app: statping-ng
+spec:
+  storageClassName: freenas-iscsi-csi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: statping-ng-config
+  namespace: statping-ng
+data:
+  VIRTUAL_HOST: "status-ng.lucasnet.int"
+  VIRTUAL_PORT: "8080"
+  DB_CONN: sqlite
+  NAME: "Lucasnet HomeLab Status Page"
+  DESCRIPTION: "Real-time status for my HomeLab systems and apps"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statping-ng
+  namespace: statping-ng
+  labels:
+    app: statping-ng
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statping-ng
+  template:
+    metadata:
+      labels:
+        app: statping-ng
+    spec:
+      containers:
+      - name: statping-ng
+        image: adamboutcher/statping-ng:latest
+        envFrom:
+        - configMapRef:
+            name: statping-ng-config
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+          - mountPath: "/app"
+            name: statping-ng-vol
+      volumes:
+        - name: statping-ng-vol
+          persistentVolumeClaim:
+            claimName: statping-ng-vol
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: statping-ng
+  namespace: statping-ng
+  labels:
+    app: statping-ng
+spec:
+  selector:
+    app: statping-ng
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      name: web
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: statping-ng-ingress
+  namespace: statping-ng
+  labels:
+    app: statping-ng
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - statping-ng.lucasnet.int
+        - statping-ng.lucasnet.org
+      secretName: lucasnet-tls
+  rules:
+    - host: statping-ng.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: statping-ng
+                port:
+                  number: 8080

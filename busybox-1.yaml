@@ -1,3 +1,5 @@
+# kubectl exec -ti busybox-2 -- nslookup mssql-1-np.default.svc.cluster.local
+#
 apiVersion: v1
 kind: Pod
 metadata:
@@ -13,4 +15,3 @@ spec:
     imagePullPolicy: IfNotPresent
   restartPolicy: Always
   nodeName: rancher.internal
-#kubectl exec -ti busybox-2 -- nslookup mssql-1-np.default.svc.cluster.local

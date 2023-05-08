@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: mssql-2-pvc
 spec:
-  storageClassName: longhorn
+  storageClassName: freenas-iscsi-csi
   accessModes:
     - ReadWriteOnce
   resources:

@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
         - name: uptime-kuma-api
-          image: medaziz11/uptimekuma_restapi
+          image: medaziz11/uptimekuma_restapi:latest
           env:
             - name: KUMA_SERVER
               value: https://uptime-kuma-service.kuma.svc:3001
@@ -49,6 +49,12 @@ spec:
             - name: uptime-kuma-api
               containerPort: 8000
               protocol: TCP
+          volumeMounts:
+            - name: kuma-api-data
+              mountPath: /db
+      volumes:
+      - name: kuma-api-data
+        emptydir: {}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

@@ -14,7 +14,7 @@ metadata:
   labels:
     k8s-app: statping
 spec:
-  storageClassName: longhorn
+  storageClassName: freenas-iscsi-csi
   accessModes:
     - ReadWriteOnce
   resources:

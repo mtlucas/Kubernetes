@@ -25,3 +25,31 @@ volumeClaimTemplates:
           storage: 2Gi
 dataloreEnv:
   DATALORE_PUBLIC_URL: "https://datalore.lucasnet.int"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: datalore
+  namespace: datalore
+  labels:
+    app: datalore
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - datalore.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: datalore.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: datalore
+                port:
+                  number: 8080

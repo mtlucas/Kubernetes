@@ -1,0 +1,116 @@
+# Install External-dns helm chart:
+#
+# helm repo add bitnami https://charts.bitnami.com/bitnami
+# helm repo update
+# helm install external-dns bitnami/external-dns --namespace external-dns --create-namespace
+#
+#@data/values
+#@overlay/match-child-defaults missing_ok=True
+---
+externalDns:
+  image:
+    repository: projects.registry.vmware.com/tkg
+  deployment:
+    #@overlay/replace
+    args:
+      - '--metrics-address=:7979'
+      - '--log-level=info'
+      - '--log-format=text'
+      - '--registry=txt'
+      - '--policy=sync'
+      - '--txt-owner-id=k8s'
+      - '--txt-prefix=___'
+      - '--provider=rfc2136'
+      - '--rfc2136-gss-tsig'
+      - '--rfc2136-host=dc-1.lucasnet.int'
+      - '--rfc2136-port=53'
+      - '--rfc2136-zone=lucasnet.int'
+      - '--rfc2136-kerberos-username=dns_sa'
+      - '--rfc2136-kerberos-password=CHANGE_ME'
+      - '--rfc2136-kerberos-realm=LUCASNET.INT'
+      - '--rfc2136-tsig-axfr'
+      - '--interval=5m'
+      - '--source=ingress'
+      - '--exclude-target-net=10.0.0.0/8'
+      - '--domain-filter=lucasnet.int'
+---
+# Add volumes to deployment:
+# spec:
+      volumes:
+        - name: kerberos-config-volume
+          configMap:
+            name: krb5.conf
+            defaultMode: 420
+        - name: lucasnet-ca-cert
+          configMap:
+            name: lucasnet-ca.pem
+            defaultMode: 420
+# containers:
+          volumeMounts:
+            - name: kerberos-config-volume
+              mountPath: /etc/krb5.conf
+              subPath: krb5.conf
+            - name: lucasnet-ca-cert
+              mountPath: /etc/ssl/certs/lucasnet-ca.pem
+              subPath: lucasnet-ca.pem
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krb5.conf
+  namespace: external-dns
+data:
+  krb5.conf: |
+    [logging]
+    default = FILE:/var/log/krb5libs.log
+    kdc = FILE:/var/log/krb5kdc.log
+    admin_server = FILE:/var/log/kadmind.log
+
+    [libdefaults]
+    dns_lookup_realm = false
+    ticket_lifetime = 24h
+    renew_lifetime = 7d
+    forwardable = true
+    rdns = false
+    pkinit_anchors = /etc/pki/tls/certs/ca-bundle.crt
+    default_ccache_name = KEYRING:persistent:%{uid}
+    default_realm = LUCASNET.INT
+
+    [realms]
+    LUCASNET.INT = {
+      kdc = dc-1.lucasnet.int
+      admin_server = dc-1.lucasnet.int
+    }
+
+    [domain_realm]
+    lucasnet.int = LUCASNET.INT
+    .lucasnet.int = LUCASNET.INT
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lucasnet-ca.pem
+  namespace: external-dns
+data:
+  lucasnet-ca.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIDbzCCAlegAwIBAgIQHpGXOUPKfZhEeXsOiPvvADANBgkqhkiG9w0BAQsFADBK
+    MRMwEQYKCZImiZPyLGQBGRYDaW50MRgwFgYKCZImiZPyLGQBGRYIbHVjYXNuZXQx
+    GTAXBgNVBAMTEGx1Y2FzbmV0LURDLTEtQ0EwHhcNMjIwNTI5MjAwNzE4WhcNMjcw
+    NTI5MjAxNzE3WjBKMRMwEQYKCZImiZPyLGQBGRYDaW50MRgwFgYKCZImiZPyLGQB
+    GRYIbHVjYXNuZXQxGTAXBgNVBAMTEGx1Y2FzbmV0LURDLTEtQ0EwggEiMA0GCSqG
+    SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDTnLWLUjdLf+hptA5ceEJMWCaoK4Ardacn
+    Bn9RQim6taxoY5Edy2ki7faKuEf6RtNnWSXnQihAFfZQbgIJBlMp/LOE5MAkckZn
+    y6/6aV8tycjrgzBWBDbajtNf3feKmnrhHjsFYPUbPz5SOqwPN7K72i528wDwDurJ
+    TW2uHEhSHD072aFtF70Pv/E37SeDNGf2UbQzOHZ6lqYNOC/kH5LL7cbX2Pq05TEw
+    7AHUyC6bFexVJFEYYJk5YhZZsM4fvH4U/+CLKXa8S/RY5xNEZS9OWNQ6SJFbEYm7
+    LX1j6Nw9ePk7H1ZSv63G8XLduvAzXQ2nDZisVcDs72ZwwSeMdeGJAgMBAAGjUTBP
+    MAsGA1UdDwQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBRkTxD8zAaf
+    8ivQXDI41enqn52e2zAQBgkrBgEEAYI3FQEEAwIBADANBgkqhkiG9w0BAQsFAAOC
+    AQEAkHB/jZRFgGzkfZ40c4/wsIjbAiCDjKqjY1sCluzXCccJOqisEhuvH7C0k0VM
+    H4VoefqM2nFxuWOL4y6Ms25KeFAeJxUswqUrbjMMTFV7B8Heso8ZbT5agDgeg5gc
+    viNbgG9RO8ldVnhwxiVMiJRhDI6GB9CsUkjaAg1mvXIOt2Nd30bZG5ID1xX3E05f
+    ttdRat0RwGps8Ao7UcgiMj7Qu5YdmeIxyEgTlGrz7+BV4rITAFOvs/1rNxOXQZPX
+    HOJo7gAMsl4d31eec4yq4PPyY5CJ0gD1vLIs9fNCGkAqkRgU8HPC7bZl6/G2HWJ3
+    j5eXjSNTrci2z4t897rNefvBjQ==
+    -----END CERTIFICATE-----

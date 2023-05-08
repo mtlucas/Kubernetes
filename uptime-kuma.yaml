@@ -8,6 +8,8 @@ kind: Service
 metadata:
   name: uptime-kuma
   namespace: uptime-kuma
+  labels:
+    app: uptime-kuma
 spec:
   selector:
     app: uptime-kuma

@@ -1,0 +1,74 @@
+# Helm install:
+#
+# helm upgrade --install --namespace kube-system --create-namespace snapshot-controller democratic-csi/snapshot-controller
+# helm upgrade --install --values freenas-iscsi.yaml --namespace democratic-csi --create-namespace zfs-iscsi democratic-csi/democratic-csi
+
+csiDriver:
+  name: "org.democratic-csi.iscsi"
+
+storageClasses:
+- name: freenas-iscsi-csi
+  defaultClass: true
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate
+  allowVolumeExpansion: true
+  parameters:
+    fsType: ext4
+  mountOptions: []
+  secrets:
+    provisioner-secret:
+    controller-publish-secret:
+    node-stage-secret:
+    node-publish-secret:
+    controller-expand-secret:
+
+# if your cluster supports snapshots you may enable below
+volumeSnapshotClasses:
+- name: snapshot-controller
+
+driver:
+  config:
+    driver: freenas-iscsi
+    instance_id:
+    httpConnection:
+      protocol: https
+      host: nas.lucasnet.int
+      port: 443
+      apiKey: CHANGE_ME
+      username: root
+      #password: CHANGE_ME
+      allowInsecure: true
+      apiVersion: 2
+    sshConnection:
+      host: nas.lucasnet.int
+      port: 22
+      username: root
+      #password: CHANGE_ME
+      privateKey: |
+        CHANGE_ME
+    zfs:
+      datasetParentName: nvme-pool/rke-iscsi/vols
+      datasetPermissionsUser: 0
+      datasetPermissionsGroup: 0
+      detachedSnapshotsDatasetParentName: nvme-pool/rke-iscsi/snaps
+      zvolCompression: lz4
+      zvolDedup: off
+      zvolEnableReservation: false
+      zvolBlocksize: 16k
+    iscsi:
+      #targetPortal: "server[:port]"
+      targetPortals: [ "192.168.100.32:3260", "192.168.101.32:3260" ]
+      interface:
+      namePrefix: "iscsi-"
+      nameSuffix: ""
+      targetGroups:
+        - targetGroupPortalGroup: 1
+          targetGroupInitiatorGroup: 1
+          targetGroupAuthType: None
+          targetGroupAuthGroup:
+      extentInsecureTpc: true
+      extentXenCompat: false
+      extentDisablePhysicalBlocksize: true
+      extentBlocksize: 512
+      extentRpm: "SSD"
+      extentAvailThreshold: 0

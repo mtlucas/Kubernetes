@@ -1,0 +1,26 @@
+# Pihole exporter
+#
+# https://github.com/eko/pihole-exporter
+
+# git clone git clone https://github.com/SiM22/pihole-exporter-helm-chart.git
+#
+# helm install -name pihole-exporter --namespace pihole --set secretEnvVars.PIHOLE_PASSWORD=admin --set extraEnvVars.PIHOLE_HOSTNAME=pihole-web ./
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: pihole-metrics
+  namespace: monitoring
+  labels:
+    app: pihole-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: exporter-port
+    scheme: http
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: pihole-exporter

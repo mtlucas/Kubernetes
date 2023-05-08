@@ -1,0 +1,33 @@
+# SNMP exporter for Prometheus
+#
+# https://artifacthub.io/packages/helm/prometheus-community/prometheus-snmp-exporter
+
+# helm install snmp-exporter prometheus-community/prometheus-snmp-exporter --namespace monitoring
+#
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: snmp-exporter
+    k8s-app: snmp-exporter
+    prometheus: rancher-monitoring-prometheus
+  name: snmp-exporter
+  namespace: monitoring
+spec:
+  jobLabel: loadmaster
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: snmp-exporter
+  namespaceSelector:
+    any: true
+  endpoints:
+  - interval: 60s
+    port: http
+    scheme: http
+    params:
+      module:
+      - kemp_loadmaster # Select which SNMP module to use
+      target:
+      - 192.168.0.8 # Modify this to point at the SNMP target to monitor
+    path: "/snmp"
+    targetPort: 9116

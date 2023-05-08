@@ -1,0 +1,9 @@
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: flame-pvc-snapshot
+  namespace: flame
+spec:
+  volumeSnapshotClassName: snapshot-controller
+  source:
+    persistentVolumeClaimName: flame-pvc

@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ironpdf
+  labels:
+    app: ironpdf
+  name: ironpdf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ironpdf
+  template:
+    metadata:
+      labels:
+        app: ironpdf
+    spec:
+      containers:
+      - image: ironsoftwareofficial/ironpdfengine:latest
+        name: ironpdf
+        ports:
+        - name: grpc-port
+          containerPort: 33350
+        envFrom:
+        - secretRef:
+            name: ironpdf-license
+#       https://www.wwt.com/article/grpc-health-checks-in-kubernetes
+        livenessProbe:
+          grpc:
+            port: 33350
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ironpdf-license
+  namespace: ironpdf
+type: Opaque
+data:
+  IRONPDF_ENGINE_LICENSE_KEY: CHANGE_ME
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ironpdf
+  namespace: ironpdf
+  labels: 
+    app: ironpdf
+spec:
+  type: ClusterIP
+  selector:
+    app: ironpdf
+  ports:
+  - port: 33350
+    targetPort: 33350
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ironpdf-nodeport
+  namespace: ironpdf
+spec:
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 33350
+      targetPort: 33350
+      nodePort: 30102
+  selector:
+    app: ironpdf
+  type: NodePort

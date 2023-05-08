@@ -17,7 +17,7 @@ metadata:
   name: dynamodb-data-dir-pvc
   namespace: dynamodb
 spec:
-  storageClassName: longhorn
+  storageClassName: freenas-iscsi-csi
   accessModes:
     - ReadWriteOnce
   resources:

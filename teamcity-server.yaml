@@ -113,7 +113,7 @@ spec:
       serviceAccountName: teamcity-server
       containers:
         - name: teamcity-server
-          image: jetbrains/teamcity-server:2022.04.2
+          image: jetbrains/teamcity-server:2022.10.3
           ports:
             - containerPort: 8111
           # teamcity doesn't have a proper status check endpoint
@@ -148,10 +148,10 @@ spec:
             timeoutSeconds: 5
           resources:
             limits:
-              cpu: 500m
+              cpu: '2'
               memory: 4Gi  # TeamCity server's 2 processes JVM heaps are -Xmx2g and -Xmx1g, plus overheads and wiggle room
             requests:
-              cpu: 200m    # 69m resting
+              cpu: 500m    # 69m resting
               memory: 2Gi  # 1700Mi resting with pipelines
           volumeMounts:
             # contains config/, lib/, plugins/, system/
@@ -177,7 +177,7 @@ spec:
     - metadata:
         name: teamcity-server-datadir
       spec:
-        storageClassName: longhorn
+        storageClassName: freenas-iscsi-csi
         accessModes:
           - ReadWriteOnce
         resources:
@@ -187,7 +187,7 @@ spec:
     - metadata:
         name: teamcity-server-logs
       spec:
-        storageClassName: longhorn
+        storageClassName: freenas-iscsi-csi
         accessModes:
           - ReadWriteOnce
         resources:

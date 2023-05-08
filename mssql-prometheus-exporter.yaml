@@ -1,0 +1,81 @@
+# Prometheus exporter container for MSSQL server
+#
+# https://github.com/awaragi/prometheus-mssql-exporter
+#
+# docker run -e SERVER=192.168.56.101 -e USERNAME=SA -e PASSWORD=qkD4x3yy -e DEBUG=app -p 4000:4000 --name prometheus-mssql-exporter awaragi/prometheus-mssql-exporter
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql-exporter
+  namespace: mssql
+spec:
+  replicas: 1
+  selector:
+     matchLabels:
+       app: mssql-exporter
+  template:
+    metadata:
+      labels:
+        app: mssql-exporter
+    spec:
+      containers:
+      - name: prometheus-mssql-exporter
+        image: awaragi/prometheus-mssql-exporter:latest
+        ports:
+        - containerPort: 4000
+        env:
+        - name: SERVER
+          value: mssql.mssql
+        - name: USERNAME
+          value: sa
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mssql-sa
+              key: SA_PASSWORD
+        - name: DEBUG
+          value: "app"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mssql-sa
+  namespace: mssql
+data:
+  SA_PASSWORD: UGFzc3dvcmQxMjM0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-exporter
+  namespace: mssql
+  labels:
+    app: mssql-exporter
+spec:
+  ports:
+  - port: 4000
+    protocol: TCP
+    targetPort: 4000
+  selector:
+    app: mssql-exporter
+  type: ClusterIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mssql-metrics
+  namespace: monitoring
+  labels:
+    app: mssql-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: mssql-metrics
+    scheme: http
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: mssql-exporter

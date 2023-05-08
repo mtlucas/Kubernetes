@@ -1,0 +1,123 @@
+# Graphite exporter install
+#
+# https://github.com/prometheus/graphite_exporter
+# https://github.com/mazay/truenas-grafana
+# https://alexandre.deverteuil.net/post/monitoring-truenas-with-prometheus-and-loki/
+#
+
+# helm repo add djjudas21 https://djjudas21.github.io/charts/
+# helm repo update
+#
+# helm install graphite-exporter djjudas21/graphite-exporter --version 0.1.6 --namespace monitoring --set serviceMonitor.enabled=true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graphite-exporter-lb
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/instance: graphite-exporter
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+spec:
+  ports:
+    - name: graphite-udp
+      protocol: UDP
+      port: 2003
+      targetPort: 9109
+    - name: graphite-tcp
+      protocol: TCP
+      port: 2003
+      targetPort: 9109
+  selector:
+    app.kubernetes.io/instance: graphite-exporter
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  allocateLoadBalancerNodePorts: true
+  internalTrafficPolicy: Cluster
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: graphite-exporter
+  name: graphite-exporter
+  namespace: monitoring
+data:
+  # TODO: regex can be improved to reduce amount of mappings
+  graphite_mapping.yaml: |-
+    mappings:
+      # ifstats mapping
+      - match: 'servers\.(.*)\.interface-(.*)\.if_(.*)'
+        match_type: regex
+        name: 'truenas_interface_${3}'
+        labels:
+          hostname: ${1}
+          device: ${2}
+      # dataset metrics mapping
+      - match: 'servers\.(.*)\.df-(.*)\.(.*)'
+        match_type: regex
+        name: 'truenas_dataset_${3}'
+        labels:
+          hostname: ${1}
+          device: ${2}
+      # memory metrics mapping
+      - match: 'servers\.(.*)\.memory\.(.*)'
+        match_type: regex
+        name: 'truenas_${2}'
+        labels:
+          hostname: ${1}
+      # zfs arc metrics mapping
+      - match: 'servers\.(.*)\.zfs_arc\.(.*)'
+        match_type: regex
+        name: 'truenas_zfs_arc_${2}'
+        labels:
+          hostname: ${1}
+      # processes metrics
+      - match: 'servers\.(.*)\.processes\.(.*)'
+        match_type: regex
+        name: 'truenas_processes_${2}'
+        labels:
+          hostname: ${1}
+      # LA metrics
+      - match: 'servers\.(.*)\.load\.load\.(.*)'
+        match_type: regex
+        name: 'truenas_load_${2}'
+        labels:
+          hostname: ${1}
+      # rrd cache metrics
+      - match: 'servers\.(.*)\.rrdcached\.(.*)'
+        match_type: regex
+        name: 'truenas_rrdcached_${2}'
+        labels:
+          hostname: ${1}
+      # swap metrics
+      - match: 'servers\.(.*)\.swap\.(.*)'
+        match_type: regex
+        name: 'truenas_swap_${2}'
+        labels:
+          hostname: ${1}
+      # uptime metric
+      - match: 'servers\.(.*)\.uptime\.(.*)'
+        match_type: regex
+        name: 'truenas_uptime_${2}'
+        labels:
+          hostname: ${1}
+      # disk metrics mapping
+      - match: 'servers\.(.*)\.disk-(.*)\.(.*)\.(.*)'
+        match_type: regex
+        name: 'truenas_${3}_${4}'
+        labels:
+          hostname: ${1}
+          device: ${2}
+      # cpu and nfs metrics mapping
+      - match: 'servers\.(.*)\.(.*)-(.*)\.(.*)'
+        match_type: regex
+        name: 'truenas_${2}_${4}'
+        labels:
+          hostname: ${1}
+          device: ${3}

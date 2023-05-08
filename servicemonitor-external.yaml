@@ -1,0 +1,292 @@
+# yaml-language-server: $schema=https://json.schemastore.org/yamllint.json
+#
+---
+# pfsense servicemonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: pfsense-1-metrics
+  namespace: monitoring
+  labels:
+    app: pfsense-1-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: metrics
+    scheme: http
+  selector:
+    matchLabels:
+      app: pfsense-1-metrics
+  namespaceSelector:
+    any: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pfsense-1-metrics
+  namespace: monitoring
+  labels:
+    app: pfsense-1-metrics
+spec:
+  externalName: pfsense-1.lucasnet.int
+  ports:
+  - name: metrics
+    port: 9100
+    protocol: TCP
+    targetPort: 9100
+  type: ExternalName
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  # Name must match service name
+  name: pfsense-1-metrics
+  namespace: monitoring
+  labels:
+    app: pfsense-1-metrics
+subsets:
+  - addresses:
+    - ip: 192.168.0.5
+    ports:
+      - name: metrics
+        port: 9100
+        protocol: TCP
+---
+# rtr-vyos servicemonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rtr-vyos-metrics
+  namespace: monitoring
+  labels:
+    app: rtr-vyos-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: metrics
+    scheme: http
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: rtr-vyos-metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rtr-vyos-metrics
+  namespace: monitoring
+  labels:
+    app: rtr-vyos-metrics
+spec:
+  externalName: rtr-vyos.lucasnet.int
+  ports:
+  - name: metrics
+    port: 9100
+    protocol: TCP
+    targetPort: 9100
+  type: ExternalName
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  # Name must match service name
+  name: rtr-vyos-metrics
+  namespace: monitoring
+  labels:
+    app: rtr-vyos-metrics
+subsets:
+  - addresses:
+    - ip: 192.168.0.3
+    ports:
+      - name: metrics
+        port: 9100
+        protocol: TCP
+---
+# statping service monitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: statping-metrics
+  namespace: monitoring
+  labels:
+    app: statping-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: web
+    scheme: http
+    params:
+      api: ['CHANGE_ME']
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: statping
+---
+# statping-1 servicemonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: statping-1-metrics
+  namespace: monitoring
+  labels:
+    app: statping-1-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: metrics
+    scheme: https
+    params:
+      api: ['CHANGE_ME']
+    tlsConfig:
+      insecureSkipVerify: true
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: statping-1-metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: statping-1-metrics
+  namespace: monitoring
+  labels:
+    app: statping-1-metrics
+spec:
+  externalName: statping-1.lucasnet.int
+  ports:
+  - name: metrics
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  type: ExternalName
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  # Name must match service name
+  name: statping-1-metrics
+  namespace: monitoring
+  labels:
+    app: statping-1-metrics
+subsets:
+  - addresses:
+    - ip: 10.0.1.22
+    ports:
+      - name: metrics
+        port: 443
+        protocol: TCP
+---
+# statping-2 servicemonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: statping-2-metrics
+  namespace: monitoring
+  labels:
+    app: statping-2-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: metrics
+    scheme: https
+    params:
+      api: ['CHANGE_ME']
+    tlsConfig:
+      insecureSkipVerify: true
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: statping-2-metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: statping-2-metrics
+  namespace: monitoring
+  labels:
+    app: statping-2-metrics
+spec:
+  externalName: statping-2.lucasnet.int
+  ports:
+  - name: metrics
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  type: ExternalName
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  # Name must match service name
+  name: statping-2-metrics
+  namespace: monitoring
+  labels:
+    app: statping-2-metrics
+subsets:
+  - addresses:
+    - ip: 10.10.1.5
+    ports:
+      - name: metrics
+        port: 443
+        protocol: TCP
+---
+# TrueNAS servicemonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: truenas-metrics
+  namespace: monitoring
+  labels:
+    app: truenas-metrics
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: metrics
+    scheme: http
+  selector:
+    matchLabels:
+      app: truenas-metrics
+  namespaceSelector:
+    any: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truenas-metrics
+  namespace: monitoring
+  labels:
+    app: truenas-metrics
+spec:
+  externalName: truenas.lucasnet.int
+  ports:
+  - name: metrics
+    port: 9100
+    protocol: TCP
+    targetPort: 9100
+  type: ExternalName
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  # Name must match service name
+  name: truenas-metrics
+  namespace: monitoring
+  labels:
+    app: truenas-metrics
+subsets:
+  - addresses:
+    - ip: 192.168.0.32
+    ports:
+      - name: metrics
+        port: 9100
+        protocol: TCP

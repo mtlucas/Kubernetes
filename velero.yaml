@@ -1,0 +1,364 @@
+# Install Velero backup:
+#
+# https://medium.com/techlogs/velero-with-csi-a883e8a24710
+# 
+# choco install velero -y
+#
+# wget https://github.com/vmware-tanzu/velero/releases/download/v1.10.2/velero-v1.10.2-linux-amd64.tar.gz
+# tar -xvf velero-v1.10.2-linux-amd64.tar.gz
+#
+# Install notes:
+# 1. Create VELERO cloud credentials:
+#    [default]
+#    aws_access_key_id=minio
+#    aws_secret_access_key=CHANGE_ME
+# 2. Get location of CA Cert used by minio:  lucasnet-ca.cer
+# 3. Download velero.exe from above
+# 4. Create namespace:
+#    kubectl create namespace velero
+# 5. Run install cmd:
+#
+# ./velero install  --provider aws \
+# --plugins velero/velero-plugin-for-aws:v1.6.1,velero/velero-plugin-for-csi:v0.4.2 \
+# --bucket backup \
+# --secret-file /root/velero-creds \
+# --use-volume-snapshots=true \
+# --backup-location-config region=default,s3ForcePathStyle="true",s3Url=https://192.168.0.32:9000 \
+# --image velero/velero:v1.10.2 \
+# --snapshot-location-config region="default" \
+# --features=EnableCSI \
+# --cacert /etc/pki/ca-trust/source/anchors/lucasnet-ca.cer
+#
+# 6. Validate cloud-credentials Secret
+# 7. Perform backup
+#    velero backup create baget-backup --selector app=baget --wait
+#
+# Or use helm:
+#
+# helm install vmware-tanzu/velero --namespace velero -f values.yaml --create-namespace 
+#
+# values.yaml:
+---
+##
+## Configuration settings that directly affect the Velero deployment YAML.
+##
+image:
+  repository: velero/velero
+  tag: v1.10.2
+  pullPolicy: IfNotPresent
+  imagePullSecrets: []
+annotations: {}
+labels: {}
+podAnnotations: {}
+podLabels: {}
+resources:
+  requests:
+    cpu: 500m
+    memory: 128Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+dnsPolicy: ClusterFirst
+initContainers:
+  - name: velero-plugin-for-csi
+    image: velero/velero-plugin-for-csi:v0.4.2
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+  - name: velero-plugin-for-aws
+    image: velero/velero-plugin-for-aws:v1.6.1
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+podSecurityContext: {}
+containerSecurityContext: {}
+lifecycle: {}
+priorityClassName: ""
+terminationGracePeriodSeconds: 3600
+tolerations: []
+affinity: {}
+nodeSelector: {}
+dnsConfig: {}
+extraVolumes: []
+extraVolumeMounts: []
+extraObjects: []
+  # - apiVersion: secrets-store.csi.x-k8s.io/v1
+  #   kind: SecretProviderClass
+  #   metadata:
+  #     name: velero-secrets-store
+  #   spec:
+  #     provider: aws
+  #     parameters:
+  #       objects: |
+  #         - objectName: "velero"
+  #           objectType: "secretsmanager"
+  #           jmesPath:
+  #               - path: "access_key"
+  #                 objectAlias: "access_key"
+  #               - path: "secret_key"
+  #                 objectAlias: "secret_key"
+  #     secretObjects:
+  #       - data:
+  #         - key: access_key
+  #           objectName: client-id
+  #         - key: client-secret
+  #           objectName: client-secret
+  #         secretName: velero-secrets-store
+  #         type: Opaque
+metrics:
+  enabled: true
+  scrapeInterval: 30s
+  scrapeTimeout: 10s
+  service:
+    annotations: {}
+    labels: {}
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8085"
+    prometheus.io/path: "/metrics"
+  serviceMonitor:
+    autodetect: true
+    enabled: false
+    annotations: {}
+    additionalLabels: {}
+  nodeAgentPodMonitor:
+    autodetect: true
+    enabled: false
+    annotations: {}
+    additionalLabels: {}
+  prometheusRule:
+    enabled: false
+    additionalLabels: {}
+    spec: []
+kubectl:
+  image:
+    repository: docker.io/bitnami/kubectl
+  containerSecurityContext: {}
+  resources: {}
+  annotations: {}
+  labels: {}
+upgradeCRDs: true
+cleanUpCRDs: false
+configuration:
+  # Cloud provider being used (e.g. aws, azure, gcp).
+  provider:
+  # Parameters for the `default` BackupStorageLocation. See
+  # https://velero.io/docs/v1.6/api-types/backupstoragelocation/
+  backupStorageLocation:
+    # name is the name of the backup storage location where backups should be stored. If a name is not provided,
+    # a backup storage location will be created with the name "default". Optional.
+    name:
+    # provider is the name for the backup storage location provider. If omitted
+    # `configuration.provider` will be used instead.
+    provider:
+    # bucket is the name of the bucket to store backups in. Required.
+    bucket:
+    # caCert defines a base64 encoded CA bundle to use when verifying TLS connections to the provider. Optional.
+    caCert:
+    # prefix is the directory under which all Velero data should be stored within the bucket. Optional.
+    prefix:
+    # default indicates this location is the default backup storage location. Optional.
+    default:
+    # accessMode determines if velero can write to this backup storage location. Optional.
+    # default to ReadWrite, ReadOnly is used during migrations and restores.
+    accessMode: ReadWrite
+    # Additional provider-specific configuration. See link above
+    # for details of required/optional fields for your provider.
+    config: {}
+    #  region:
+    #  s3ForcePathStyle:
+    #  s3Url:
+    #  kmsKeyId:
+    #  resourceGroup:
+    #  The ID of the subscription containing the storage account, if different from the cluster’s subscription. (Azure only)
+    #  subscriptionId:
+    #  storageAccount:
+    #  publicUrl:
+    #  Name of the GCP service account to use for this backup storage location. Specify the
+    #  service account here if you want to use workload identity instead of providing the key file.(GCP only)
+    #  serviceAccount:
+    #  Option to skip certificate validation or not if insecureSkipTLSVerify is set to be true, the client side should set the
+    #  flag. For Velero client Command like velero backup describe, velero backup logs needs to add the flag --insecure-skip-tls-verify
+    #  insecureSkipTLSVerify:
+
+  # Parameters for the `default` VolumeSnapshotLocation. See
+  # https://velero.io/docs/v1.6/api-types/volumesnapshotlocation/
+  volumeSnapshotLocation:
+    # name is the name of the volume snapshot location where snapshots are being taken. Required.
+    name:
+    # provider is the name for the volume snapshot provider. If omitted
+    # `configuration.provider` will be used instead.
+    provider:
+    # Additional provider-specific configuration. See link above
+    # for details of required/optional fields for your provider.
+    config: {}
+  #    region:
+  #    apiTimeout:
+  #    resourceGroup:
+  #    The ID of the subscription where volume snapshots should be stored, if different from the cluster’s subscription. If specified, also requires `configuration.volumeSnapshotLocation.config.resourceGroup`to be set. (Azure only)
+  #    subscriptionId:
+  #    incremental:
+  #    snapshotLocation:
+  #    project:
+
+  # These are server-level settings passed as CLI flags to the `velero server` command. Velero
+  # uses default values if they're not passed in, so they only need to be explicitly specified
+  # here if using a non-default value. The `velero server` default values are shown in the
+  # comments below.
+  # --------------------
+  # `velero server` default: restic
+  uploaderType:
+  # `velero server` default: 1m
+  backupSyncPeriod:
+  # `velero server` default: 4h
+  fsBackupTimeout:
+  # `velero server` default: 30
+  clientBurst:
+  # `velero server` default: 500
+  clientPageSize:
+  # `velero server` default: 20.0
+  clientQPS:
+  # Name of the default backup storage location. Default: default
+  defaultBackupStorageLocation:
+  # How long to wait by default before backups can be garbage collected. Default: 72h
+  defaultBackupTTL:
+  # Name of the default volume snapshot location.
+  defaultVolumeSnapshotLocations:
+  # `velero server` default: empty
+  disableControllers:
+  # `velero server` default: 1h
+  garbageCollectionFrequency:
+  # Set log-format for Velero pod. Default: text. Other option: json.
+  logFormat:
+  # Set log-level for Velero pod. Default: info. Other options: debug, warning, error, fatal, panic.
+  logLevel:
+  # The address to expose prometheus metrics. Default: :8085
+  metricsAddress:
+  # Directory containing Velero plugins. Default: /plugins
+  pluginDir:
+  # The address to expose the pprof profiler. Default: localhost:6060
+  profilerAddress:
+  # `velero server` default: false
+  restoreOnlyMode:
+  # `velero server` default: customresourcedefinitions,namespaces,storageclasses,volumesnapshotclass.snapshot.storage.k8s.io,volumesnapshotcontents.snapshot.storage.k8s.io,volumesnapshots.snapshot.storage.k8s.io,persistentvolumes,persistentvolumeclaims,secrets,configmaps,serviceaccounts,limitranges,pods,replicasets.apps,clusterclasses.cluster.x-k8s.io,clusters.cluster.x-k8s.io,clusterresourcesets.addons.cluster.x-k8s.io
+  restoreResourcePriorities:
+  # `velero server` default: 1m
+  storeValidationFrequency:
+  # How long to wait on persistent volumes and namespaces to terminate during a restore before timing out. Default: 10m
+  terminatingResourceTimeout:
+  # Comma separated list of velero feature flags. default: empty
+  # features: EnableCSI
+  features:
+  # `velero server` default: velero
+  namespace:
+  # additional key/value pairs to be used as environment variables such as "AWS_CLUSTER_NAME: 'yourcluster.domain.tld'"
+  extraEnvVars: {}
+  # Set true for backup all pod volumes without having to apply annotation on the pod when used file system backup Default: false.
+  defaultVolumesToFsBackup:
+  # How often repository maintain is run for repositories by default.
+  defaultRepoMaintainFrequency:
+##
+## Settings for additional Velero resources.
+##
+rbac:
+  create: true
+  clusterAdministrator: true
+  clusterAdministratorName: cluster-admin
+serviceAccount:
+  server:
+    create: true
+    name:
+    annotations:
+    labels:
+credentials:
+  useSecret: true
+  name:
+  existingSecret:
+  secretContents: {}
+  extraEnvVars: {}
+  extraSecretRef: ""
+backupsEnabled: true
+snapshotsEnabled: true
+# Whether to deploy the node-agent daemonset.
+deployNodeAgent: false
+nodeAgent:
+  podVolumePath: /var/lib/kubelet/pods
+  privileged: false
+  # Pod priority class name to use for the node-agent daemonset. Optional.
+  priorityClassName: ""
+  # Resource requests/limits to specify for the node-agent daemonset deployment. Optional.
+  # https://velero.io/docs/v1.6/customize-installation/#customize-resource-requests-and-limits
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+  # Tolerations to use for the node-agent daemonset. Optional.
+  tolerations: []
+  # Annotations to set for the node-agent daemonset. Optional.
+  annotations: {}
+  # labels to set for the node-agent daemonset. Optional.
+  labels: {}
+  # will map /scratch to emptyDir. Set to false and specify your own volume
+  # via extraVolumes and extraVolumeMounts that maps to /scratch
+  # if you don't want to use emptyDir.
+  useScratchEmptyDir: true
+  # Extra volumes for the node-agent daemonset. Optional.
+  extraVolumes: []
+  # Extra volumeMounts for the node-agent daemonset. Optional.
+  extraVolumeMounts: []
+  # Key/value pairs to be used as environment variables for the node-agent daemonset. Optional.
+  extraEnvVars: {}
+  # Configure the dnsPolicy of the node-agent daemonset
+  # See: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
+  dnsPolicy: ClusterFirst
+  # SecurityContext to use for the Velero deployment. Optional.
+  # Set fsGroup for `AWS IAM Roles for Service Accounts`
+  # see more informations at: https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html
+  podSecurityContext:
+    runAsUser: 0
+    # fsGroup: 1337
+  # Container Level Security Context for the 'node-agent' container of the node-agent daemonset. Optional.
+  # See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  containerSecurityContext: {}
+  # Container Lifecycle Hooks to use for the node-agent daemonset. Optional.
+  lifecycle: {}
+  # Node selector to use for the node-agent daemonset. Optional.
+  nodeSelector: {}
+  # Affinity to use with node-agent daemonset. Optional.
+  affinity: {}
+  # DNS configuration to use for the node-agent daemonset. Optional.
+  dnsConfig: {}
+# Backup schedules to create.
+# Eg:
+# schedules:
+#   mybackup:
+#     disabled: false
+#     labels:
+#       myenv: foo
+#     annotations:
+#       myenv: foo
+#     schedule: "0 0 * * *"
+#     useOwnerReferencesInBackup: false
+#     template:
+#       ttl: "240h"
+#       includedNamespaces:
+#       - foo
+schedules: {}
+# Velero ConfigMaps.
+# Eg:
+# configMaps:
+#   fs-restore-action-config:
+#     labels:
+#       velero.io/plugin-config: ""
+#       velero.io/pod-volume-restore: RestoreItemAction
+#     data:
+#       image: velero/velero-restore-helper:v1.10.2
+configMaps: {}
+##
+## End of additional Velero resource settings.
+##

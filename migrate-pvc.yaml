@@ -1,0 +1,77 @@
+# Job to migrate RWO PVC data to new one
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: kuma-data-uptime-kuma-0-new  # new PVC name
+  namespace: kuma  # namespace where the pvc's exist
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn  # longhorn or freenas-iscsi-csi
+  resources:
+    requests:
+      storage: 1Gi  # Size
+---
+# NFS migration for manual file copy
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mssql-data-nfs  # new PVC name
+  namespace: mssql  # namespace where the pvc's exist
+  annotations:
+    nfs.io/storage-path: "backup" 
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-client  # longhorn or freenas-iscsi-csi
+  resources:
+    requests:
+      storage: 10Gi  # Size
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: kuma  # namespace where the pvc's exist
+  name: volume-migration
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 3
+  template:
+    metadata:
+      name: volume-migration
+      labels:
+        name: volume-migration
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: volume-migration
+          image: ubuntu:xenial
+          tty: true
+          command: [ "/bin/sh" ]
+          args: [ "-c", "cp -rp -v /mnt/old/. /mnt/new" ]
+          volumeMounts:
+            - name: old-vol
+              mountPath: /mnt/old
+            - name: new-vol
+              mountPath: /mnt/new
+      volumes:
+        - name: old-vol
+          persistentVolumeClaim:
+            claimName: kuma-data-uptime-kuma-0 # change to data source pvc
+        - name: new-vol
+          persistentVolumeClaim:
+            claimName: kuma-data-uptime-kuma-0-new # change to data target pvc
+
+# Sample output from job
+# -----------------------
+# '/mnt/old/./upload' -> '/mnt/new/./upload'
+# '/mnt/old/./kuma.db' -> '/mnt/new/./kuma.db'
+# '/mnt/old/./kuma.db.bak0' -> '/mnt/new/./kuma.db.bak0'
+# '/mnt/old/./kuma.db-shm.bak0' -> '/mnt/new/./kuma.db-shm.bak0'
+# '/mnt/old/./kuma.db-wal.bak0' -> '/mnt/new/./kuma.db-wal.bak0'
+# '/mnt/old/./error.log' -> '/mnt/new/./error.log'
+# '/mnt/old/./kuma.db.bak20230223212657' -> '/mnt/new/./kuma.db.bak20230223212657'
+# '/mnt/old/./kuma.db-shm.bak20230223212657' -> '/mnt/new/./kuma.db-shm.bak20230223212657'
+# '/mnt/old/./kuma.db-wal.bak20230223212657' -> '/mnt/new/./kuma.db-wal.bak20230223212657'
+# '/mnt/old/./plugins' -> '/mnt/new/./plugins'

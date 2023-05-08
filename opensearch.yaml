@@ -1,0 +1,52 @@
+# Install Opensearch Operator
+#
+# helm repo add opensearch-operator https://opster.github.io/opensearch-k8s-operator/
+# helm repo update
+# helm install opensearch-operator opensearch-operator/opensearch-operator --namespace opensearch --create-namespace
+#
+# Dashboards:
+#
+# helm repo add opensearch-project-helm-charts https://opensearch-project.github.io/helm-charts
+# helm repo update
+# helm install opensearch-dashboards opensearch-project-helm-charts/opensearch-dashboards --version 2.3.0 --namespace opensearch
+#
+---
+apiVersion: opensearch.opster.io/v1
+kind: OpenSearchCluster
+metadata:
+  name: opensearch-1
+  namespace: opensearch
+spec:
+  general:
+    version: 2.3.0
+    httpPort: 9200
+    vendor: opensearch
+    serviceName: opensearch
+    monitoring:
+     enable: true
+  dashboards:
+    version: 2.3.0
+    enable: true
+    replicas: 1
+    resources:
+      requests:
+         memory: "512Mi"
+         cpu: "200m"
+      limits:
+         memory: "512Mi"
+         cpu: "200m"
+  nodePools:
+    - component: masters
+      replicas: 3
+      diskSize: "5Gi"
+      resources:
+         requests:
+            memory: "1Gi"
+            cpu: "1"
+         limits:
+            memory: "1Gi"
+            cpu: "1"
+      roles:
+        - "cluster_manager"
+        - "data"
+        - "ingest"

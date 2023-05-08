@@ -95,7 +95,7 @@ spec:
       name: cassandra-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: longhorn
+      storageClassName: freenas-iscsi-csi
       resources:
         requests:
           storage: 1Gi

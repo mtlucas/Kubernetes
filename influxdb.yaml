@@ -22,7 +22,7 @@ metadata:
     app: influxdb
   name: influxdb-pvc
 spec:
-  storageClassName: longhorn
+  storageClassName: freenas-iscsi-csi
   accessModes:
   - ReadWriteOnce
   resources:

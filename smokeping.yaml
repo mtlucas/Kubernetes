@@ -14,7 +14,7 @@ metadata:
   labels:
     k8s-app: smokeping
 spec:
-  storageClassName: longhorn
+  storageClassName: freenas-iscsi-csi
   accessModes:
     - ReadWriteOnce
   resources:
@@ -29,7 +29,7 @@ metadata:
   labels:
     k8s-app: smokeping
 spec:
-  storageClassName: longhorn
+  storageClassName: freenas-iscsi-csi
   accessModes:
     - ReadWriteOnce
   resources:
@@ -337,6 +337,8 @@ spec:
         - name: targets
           configMap:
             name: smokeping-targets
+      securityContext:
+        fsGroup: 1000
 ---
 apiVersion: v1
 kind: Service

@@ -1,0 +1,48 @@
+# Busybox with volume for testing
+#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-iscsi-claim
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: freenas-iscsi-csi
+  volumeMode: Filesystem
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rwo-busybox
+  namespace: default
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      run: busybox
+  template:
+    metadata:
+      labels:
+        run: busybox
+    spec:
+      containers:
+      - args:
+        - sh
+        image: busybox
+        imagePullPolicy: Always
+        name: busybox
+        stdin: true
+        tty: true
+        volumeMounts:
+        - name: pvc1
+          mountPath: "/mnt1"
+      restartPolicy: Always
+      volumes:
+      - name: pvc1
+        persistentVolumeClaim:
+          claimName: test-iscsi-claim
