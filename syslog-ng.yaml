@@ -1,0 +1,43 @@
+# Syslog-ng helm install:
+#
+# https://staging.artifacthub.io/packages/helm/k8s-at-home/syslog-ng
+#
+# https://www.syslog-ng.com/community/b/blog/posts/graylog-destination-syslog-ng
+# 
+# http://mitzkia.github.io/syslog-ng-ose-configurator/#/howtouse
+#
+# helm repo add k8s-at-home https://k8s-at-home.com/charts/
+# helm repo update
+# helm install syslog-ng k8s-at-home/syslog-ng --namespace logging --create-namespace
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syslog-ng-lb
+  namespace: logging
+  labels:
+    app.kubernetes.io/instance: syslog-ng
+    app.kubernetes.io/name: syslog-ng
+spec:
+  ports:
+    - name: syslog-tcp
+      protocol: TCP
+      port: 2514
+      targetPort: 6601
+    - name: syslog-udp
+      protocol: UDP
+      port: 2514
+      targetPort: 5514
+  selector:
+    app.kubernetes.io/instance: syslog-ng
+    app.kubernetes.io/name: syslog-ng
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  allocateLoadBalancerNodePorts: true
+  internalTrafficPolicy: Cluster
+

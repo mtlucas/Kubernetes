@@ -1,0 +1,67 @@
+# Graylog helm install
+#
+# https://github.com/eldada/helm-charts/blob/master/stable/graylog/README.md
+#
+# https://www.graylog.org/post/how-to-use-graylog-as-a-syslog-server/
+#
+# helm repo add graylog https://github.com/eldada/helm-charts/blob/master/stable/graylog/
+# helm install --namespace "graylog" -n "graylog" stable/graylog --create-namespace \
+# --set tags.install-mongodb=false \
+# --set tags.install-elasticsearch=false \
+# --set graylog.mongodb.uri=mongodb+srv://admin:CHANGE_ME@mongodb-1-svc.mongodb.svc.cluster.local/graylog?replicaSet=mongodb-1&authMechanism=SCRAM-SHA-256&authSource=admin&ssl=false \
+# --set graylog.elasticsearch.hosts=http://elastic:CHANGE_ME@elastic.lucasnet.int 
+#
+# Possibly need to disable version check in graylog ConfigMap:
+#
+# elasticsearch_disable_version_check = true
+#
+# Also may need to create new cacerts with elasticsearch CA:
+# 
+# kubectl create configmap cacerts --from-file=cacerts -n graylog
+#
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: graylog-ingress
+  namespace: graylog
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - graylog.lucasnet.int
+        - graylog.lucasnet.org
+      secretName: lucasnet-tls
+  rules:
+    - host: graylog.lucasnet.int
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: graylog-web
+                port:
+                  number: 9000
+---
+# Using mettallb loadbalancer for Syslog input
+apiVersion: v1
+kind: Service
+metadata:
+  name: graylog-lb
+  namespace: graylog
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+spec:
+  ports:
+    - name: syslog-gelf
+      protocol: TCP
+      port: 12201
+      targetPort: 12201
+  selector:
+    app.kubernetes.io/instance: graylog
+  type: LoadBalancer

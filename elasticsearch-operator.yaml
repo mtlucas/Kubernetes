@@ -1,0 +1,90 @@
+# Elasticsearch operator install:
+#
+# https://artifacthub.io/packages/helm/elastic/eck-operator
+#
+# helm repo add elastic https://helm.elastic.co
+# helm repo update
+# helm install my-eck-operator elastic/eck-operator --version 2.7.0 --namespace elastic-system --create-namespace
+# 
+---
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch-1
+  namespace: elastic-system
+spec:
+  auth: {}
+  http:
+    service:
+      metadata: {}
+      spec: {}
+    tls:
+      certificate: {}
+  monitoring:
+    logs: {}
+    metrics: {}
+  nodeSets:
+    - config:
+        node.store.allow_mmap: false
+        indices.query.bool.max_clause_count: 2048
+      count: 1
+      name: default
+      podTemplate:
+        metadata:
+          creationTimestamp: null
+        spec:
+          containers:
+            - env:
+                - name: ES_JAVA_OPTS
+                  value: '-Xms2g -Xmx2g'
+              name: elasticsearch
+              resources: {}
+          nodeSelector:
+            nodetype: worker
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 25Gi
+            storageClassName: local-path
+          status: {}
+  transport:
+    service:
+      metadata: {}
+      spec: {}
+    tls:
+      certificate: {}
+  updateStrategy:
+    changeBudget: {}
+  version: 7.17.8
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  annotations:
+  name: kibana-1
+  namespace: elastic-system
+spec:
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch-1
+  enterpriseSearchRef: {}
+  http:
+    service:
+      metadata: {}
+      spec: {}
+    tls:
+      certificate: {}
+  monitoring:
+    logs: {}
+    metrics: {}
+  podTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers: null
+  version: 7.17.8

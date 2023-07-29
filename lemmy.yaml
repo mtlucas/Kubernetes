@@ -1,0 +1,5 @@
+# Install Lemmy via Helm
+
+# helm repo add ananace-charts https://ananace.gitlab.io/charts
+# helm install lemmy ananace-charts/lemmy --set serverName=lemmy.lucasnet.int --set admin.email=mike@lucasnet.org --set config.siteName="Lucasnet Lemmy" --namespace lemmy --create-namespace
+

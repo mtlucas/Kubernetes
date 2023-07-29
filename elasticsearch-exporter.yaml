@@ -1,0 +1,135 @@
+# Elasticsearch exporter for Prometheus:
+#
+# https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-elasticsearch-exporter/README.md
+#
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm repo update
+# helm install elasticsearch-exporter prometheus-community/prometheus-elasticsearch-exporter --namespace elastic-system
+#
+# Values.yaml:
+---
+affinity: {}
+deployment:
+  annotations: {}
+  labels: {}
+dnsConfig: {}
+env: {}
+envFromSecret: ""
+es:
+  aliases: false
+  all: true
+  cluster_settings: false
+  data_stream: false
+  indices: true
+  indices_mappings: true
+  indices_settings: true
+  shards: true
+  slm: false
+  snapshots: true
+  ssl:
+    ca:
+      path: /etc/ssl/certs/ca-certificates.crt
+    client:
+      enabled: false
+      keyPath: /ssl/client.key
+      pemPath: /ssl/client.pem
+    enabled: true
+    useExistingSecrets: true
+  sslSkipVerify: true
+  timeout: 30s
+  uri: https://elastic:CHANGE_ME@elasticsearch-1-es-internal-http:9200
+extraArgs: []
+extraEnvSecrets: {}
+extraVolumeMounts: []
+extraVolumes: []
+global:
+  imagePullSecrets: []
+image:
+  pullPolicy: IfNotPresent
+  pullSecret: ""
+  repository: quay.io/prometheuscommunity/elasticsearch-exporter
+  tag: v1.5.0
+log:
+  format: logfmt
+  level: info
+nodeSelector: {}
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+podSecurityPolicies:
+  enabled: false
+priorityClassName: ""
+prometheusRule:
+  enabled: false
+  labels: {}
+  rules: []
+replicaCount: 1
+resources: {}
+restartPolicy: Always
+secretMounts: []
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+service:
+  annotations: {}
+  httpPort: 9108
+  labels: {}
+  metricsPort:
+    name: http
+  type: ClusterIP
+serviceAccount:
+  annotations: {}
+  automountServiceAccountToken: true
+  create: false
+  name: default
+serviceMonitor:
+  enabled: true
+  interval: 10s
+  jobLabel: ""
+  labels: {}
+  metricRelabelings: []
+  relabelings: []
+  sampleLimit: 0
+  scheme: http
+  scrapeTimeout: 10s
+  targetLabels: []
+tolerations: []
+web:
+  path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations:
+    meta.helm.sh/release-name: elasticsearch-exporter
+    meta.helm.sh/release-namespace: elastic-system
+  labels:
+    app: prometheus-elasticsearch-exporter
+    app.kubernetes.io/managed-by: Helm
+    chart: prometheus-elasticsearch-exporter-5.1.1
+    heritage: Helm
+    release: elasticsearch-exporter
+spec:
+  endpoints:
+    - honorLabels: true
+      interval: 60s
+      path: /metrics
+      port: http
+      scheme: http
+      scrapeTimeout: 10s
+  jobLabel: elasticsearch-exporter
+  namespaceSelector:
+    matchNames:
+      - elastic-system
+  sampleLimit: 0
+  selector:
+    matchLabels:
+      app: prometheus-elasticsearch-exporter
+      release: elasticsearch-exporter

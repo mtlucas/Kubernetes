@@ -290,3 +290,55 @@ subsets:
       - name: metrics
         port: 9100
         protocol: TCP
+---
+# Photon-1 cluster node exporter metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: photon-1-metrics
+  namespace: monitoring
+  labels:
+    app: photon-1-metrics
+spec:
+  endpoints:
+    - interval: 60s
+      path: /metrics
+      port: metrics
+      scheme: http
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: photon-1-metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: photon-1-metrics
+  namespace: monitoring
+  labels:
+    app: photon-1-metrics
+spec:
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 9100
+      targetPort: 9100
+  type: ExternalName
+  sessionAffinity: None
+  externalName: photon-1.lucasnet.int
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: photon-1-metrics
+  namespace: monitoring
+  labels:
+    app: photon-1-metrics
+subsets:
+  - addresses:
+      - ip: 192.168.0.63
+    ports:
+      - name: metrics
+        port: 9100
+        protocol: TCP

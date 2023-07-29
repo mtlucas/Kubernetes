@@ -1,0 +1,27 @@
+# Install Mongodb Prometheus Exporter
+#
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-chart
+# helm repo update
+# helm install mongodb-prometheus-exporter prometheus-community/prometheus-mongodb-exporter --set mongodb.uri="mongodb://admin:Scorps12@mongodb-1-svc.mongodb.svc.cluster.local/admin?authMechanism=SCRAM-SHA-256&ssl=false" --namespace mongodb
+#
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mongodb-metrics
+  namespace: mongodb
+  annotations:
+  labels:
+    app: mongodb-1
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: metrics
+    scheme: http
+  namespaceSelector:
+    matchNames:
+    - mongodb
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: mongodb-prometheus-exporter

@@ -4,6 +4,8 @@
 # helm repo update
 # helm install elasticsearch elastic/elasticsearch -f elastic-helm-values.yaml  --namespace=elk --create-namespace
 #
+# Test:  curl -k -XGET https://elastic:CHANGE_ME@elastic.lucasnet.int/_cluster/health?pretty=true
+#
 # Elasticsearch-helm-values.yaml
 ---
 replicas: 1
@@ -85,4 +87,9 @@ spec:
 #       "index.lifecycle.name": "3-days-no-rollover",
 #       "index.lifecycle.rollover_alias": "logstash"
 #     }
+# }
+
+# PUT logstash-2023.05.14/_settings
+# {
+#   "index.mapping.total_fields.limit": 2000
 # }

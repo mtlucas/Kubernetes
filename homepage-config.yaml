@@ -44,14 +44,6 @@
       href: https://couchdb.lucasnet.int/_utils/
       icon: https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,h_256,w_256,f_auto,q_auto:eco,dpr_1/jv751eodlrcbdy2fvxwd
       description: Database mgmt
-  - Datalore:
-      href: https://datalore.lucasnet.int/
-      icon: https://cdn.cs.1worldsync.com/2c/88/2c881361-7b03-4f58-ad26-9f35cf440471.jpg
-      description: Console
-  - Discourse:
-      href: https://discourse.lucasnet.int
-      icon: https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/92_Discourse_logo_logos-512.png
-      description: Forums
   - Docker:
       href: https://hub.docker.com/
       icon: docker.png
@@ -88,6 +80,10 @@
       href: https://grafana.lucasnet.int/
       icon: grafana.png
       description: Dashboard
+  - Graylog:
+      href: https://graylog.lucasnet.int/
+      icon: graylog.png
+      description: Log Management
   - Guacamole:
       href: https://guacamole.lucasnet.int/guacamole/
       icon: guacamole.png
@@ -105,21 +101,17 @@
       icon: kibana.png
       description: Console
   - Kube-Test:
-      href: http://localhost:30882/
+      href: http://kube-test.lucasnet.int/
       icon: https://k21academy.com/wp-content/uploads/2021/06/aaa.png
       description: Local
   - Kubernetes:
-      href: https://localhost:30562/#/
+      href: https://kubernetes-dashboard.lucasnet.int/#/
       icon: kubernetes-dashboard.png
       description: Dashboard
   - Loadmaster:
       href: https://loadmaster-1.lucasnet.int/
       icon: https://d7umqicpi7263.cloudfront.net/img/product/d6a7085c-fce9-4706-932a-3ea63ab3738b.png
       description: Load Balancer
-  - Longhorn:
-      href: https://ros.lucasnet.int/k8s/clusters/local/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/#/dashboard
-      icon: longhorn.png
-      description: Storage
   - Lucasnet:
       href: https://status.lucasnet.org/
       icon: https://uptime-storage.s3.amazonaws.com/logos/2d63d71c8d0adba281c6cd04b586896b.png

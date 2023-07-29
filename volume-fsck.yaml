@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: mssql  # namespace where the pvc's exist
+  name: volume-fsck
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 3
+  template:
+    metadata:
+      name: volume-fsck
+      labels:
+        name: volume-fsck
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: volume-fsck
+          image: ubuntu:xenial
+          tty: true
+          command: [ "/bin/sh" ]
+          args: [ "-c", "touch /mnt/old/forcefsck; ls -la /mnt/old" ]
+          volumeMounts:
+            - name: old-vol
+              mountPath: /mnt/old
+      volumes:
+        - name: old-vol
+          persistentVolumeClaim:
+            claimName: mssql-data # change to data source pvc

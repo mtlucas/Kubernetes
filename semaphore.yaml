@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: semaphore-secret
+  namespace: semaphore
+type: Opaque
+data:
+  #use echo -n <base64-encoded-string> | base64 -d to decode
+  SEMAPHORE_ADMIN: c2VtYXBob3Jl
+  SEMAPHORE_ADMIN_NAME: c2VtYXBob3Jl
+  SEMAPHORE_ADMIN_PASSWORD: c2VtYXBob3Jl
+  SEMAPHORE_DB_USER: c2VtYXBob3Jl
+  SEMAPHORE_DB_PASS: c2VtYXBob3Jl
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: semaphore
+  name: semaphore
+  namespace: semaphore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: semaphore
+  template:
+    metadata:
+      labels:
+        app: semaphore
+    spec:
+      containers:
+        - env:
+            - name: SEMAPHORE_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: semaphore-secret
+                  key: SEMAPHORE_ADMIN
+                  optional: false
+            - name: SEMAPHORE_ADMIN_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: semaphore-secret
+                  key: SEMAPHORE_ADMIN_NAME
+                  optional: false
+            - name: SEMAPHORE_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: semaphore-secret
+                  key: SEMAPHORE_ADMIN_PASSWORD
+                  optional: false
+            - name: SEMAPHORE_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: semaphore-secret
+                  key: SEMAPHORE_DB_PASS
+                  optional: false
+            - name: SEMAPHORE_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: semaphore-secret
+                  key: SEMAPHORE_DB_USER
+                  optional: false
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SEMAPHORE_ADMIN_EMAIL
+              value: admin@lucasnet.org
+            - name: SEMAPHORE_DB
+              value: semaphore
+            - name: SEMAPHORE_DB_DIALECT
+              value: mysql
+            - name: SEMAPHORE_DB_HOST
+              value: mysql.mysql.svc
+            - name: SEMAPHORE_DB_PORT
+              value: "3306"
+            - name: SEMAPHORE_PLAYBOOK_PATH
+              value: /tmp/semaphore
+            #I am unable to make GUI work with this set, so commented this
+            #- name: SEMAPHORE_WEB_ROOT
+            #  value: http://127.0.0.1:3000
+            #
+            # use head -c32 /dev/urandom | base64 to generate the below value
+            - name: SEMAPHORE_ACCESS_KEY_ENCRYPTION
+              value: zsJm9GpiqzDk42HU7oZMxTP/Pe/Mzb5lFjXYsXTGBbU=
+          #consider setting version
+          image: ansiblesemaphore/semaphore
+          name: semaphore
+          ports:
+            - containerPort: 3000
+          resources: {}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: semaphore
+  name: semaphore
+  namespace: semaphore
+spec:
+  ports:
+    - name: "3000"
+      port: 3000
+      targetPort: 3000
+  selector:
+    app: semaphore
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: semaphore
+  namespace: semaphore
+  labels:
+    app: semaphore
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '30'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '1800'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '1800'
+spec:
+  tls:
+    - hosts:
+        - semaphore.lucasnet.int
+      secretName: lucasnet-tls
+  rules:
+    - host: semaphore.lucasnet.int
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: semaphore
+                port:
+                  number: 3000

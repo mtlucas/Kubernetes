@@ -39,9 +39,9 @@ server:
 externalServers:
   enabled: false
   hosts:
-    - ros-1.lucasnet.int
-    - ros-2.lucasnet.int
-    - ros-3.lucasnet.int
+    - rke-1.lucasnet.int
+    - rke-2.lucasnet.int
+    - rke-3.lucasnet.int
   port: 9301
 client:
   enabled: true
