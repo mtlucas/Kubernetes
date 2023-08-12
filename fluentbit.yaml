@@ -46,7 +46,7 @@ data:
         Tag kube.*
         Mem_Buf_Limit 5MB
         Skip_Long_Lines On
-        Exclude_Path /var/log/containers/*_kube-system_*, /var/log/containers/*democratic-csi*, /var/log/containers/*proxy*, /var/log/containers/fluent-bit*
+        Exclude_Path /var/log/containers/*_kube-system_*, /var/log/containers/*democratic-csi*, /var/log/containers/*proxy*, /var/log/containers/fluent-bit*, /var/log/containers/speaker*
 
     [INPUT]
         Name systemd

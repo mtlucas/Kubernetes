@@ -1,0 +1,69 @@
+# These PSP's were removed in order to upgrade to 1.25
+#
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: controller
+  labels:
+    app: metallb
+spec:
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - configMap
+    - secret
+    - emptyDir
+  seLinux:
+    rule: RunAsAny
+  runAsUser:
+    rule: MustRunAs
+    ranges:
+      - min: 1
+        max: 65535
+  supplementalGroups:
+    rule: MustRunAs
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: MustRunAs
+    ranges:
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: true
+  defaultAllowPrivilegeEscalation: false
+  allowPrivilegeEscalation: false
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: speaker
+  labels:
+    app: metallb
+spec:
+  privileged: true
+  requiredDropCapabilities:
+    - ALL
+  allowedCapabilities:
+    - NET_RAW
+  volumes:
+    - configMap
+    - secret
+    - emptyDir
+  hostNetwork: true
+  hostPorts:
+    - min: 7472
+      max: 7472
+    - min: 7946
+      max: 7946
+  seLinux:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  readOnlyRootFilesystem: true
+  defaultAllowPrivilegeEscalation: false
+  allowPrivilegeEscalation: false
