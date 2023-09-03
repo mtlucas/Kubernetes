@@ -1,0 +1,33 @@
+# Install Featbit via helm:
+
+# helm repo add featbit https://featbit.github.io/featbit-charts/
+# helm repo update
+# helm search repo featbit
+# helm install featbit featbit/featbit -f .\Kubernetes_Code\featbit.yaml
+
+# Use this for values.yaml
+---
+apiExternalUrl: "https://featbit-api.lucasnet.int"
+evaluationServerExternalUrl: "https://featbit-eval.lucasnet.int"
+
+ui:
+  ingress:
+    enabled: true
+    host: featbit-ui.lucasnet.int
+    tls:
+      enabled: true
+      secretName: lucasnet-tls
+api:
+  ingress:
+    enabled: true
+    host: featbit-api.lucasnet.int
+    tls:
+      enabled: true
+      secretName: lucasnet-tls
+els:
+  ingress:
+    enabled: true
+    host: featbit-eval.lucasnet.int
+    tls:
+      enabled: true
+      secretName: lucasnet-tls
